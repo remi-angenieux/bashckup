@@ -1,3 +1,4 @@
+import os
 import subprocess
 from abc import ABC
 from datetime import datetime
@@ -78,7 +79,8 @@ class FileReader(AbstractReader):
         return cmd
 
     def _generate_incremental_metadata_file_name(self) -> Path:
-        file_name = self._file_prefix + self.incrementalMetadataFilePrefix
+        # self._file_prefix
+        file_name = self.incrementalMetadataFilePrefix
         if self.level0Frequency == 'weekly':
             file_name += '-w' + datetime.today().strftime('%V')
         elif self.level0Frequency == 'monthly':
@@ -86,6 +88,19 @@ class FileReader(AbstractReader):
         else:
             raise ValueError(f'Frequency {self.level0Frequency} is not managed')
         file_name += '.snar'
+
+        # Search if an incremental file already exists
+        incremental_file_exists = False
+        with os.scandir(self._output_directory) as it:
+            entry: os.DirEntry
+            for entry in it:
+                if entry.name.endswith(file_name):
+                    file_name = entry.name
+                    incremental_file_exists = True
+                    break
+        # If incremental file does not exist then create a file with the prefix
+        if not incremental_file_exists:
+            file_name = self._file_prefix + file_name
         return Path(self._output_directory) / file_name
 
     def _generate_metadata(self) -> dict:

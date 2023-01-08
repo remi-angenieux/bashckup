@@ -1,3 +1,13 @@
+class RunningException(Exception):
+    def __init__(self, message: str):
+        super().__init__()
+        self.message = message
+
+    def __str__(self):
+        return '\033[91m' + f'ERROR:\n' \
+                            f'Reason: {self.message}'
+
+
 class UserException(Exception):
     def __init__(self, message: str):
         super().__init__()

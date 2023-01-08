@@ -1,7 +1,6 @@
 import os
 import re
 import subprocess
-import sys
 from abc import ABC
 from datetime import datetime
 from pathlib import Path
@@ -9,6 +8,7 @@ from pathlib import Path
 from jsonschema.validators import validate
 
 from src.actuators.actuators import PythonActuator, ActuatorMetadata
+from src.actuators.exceptions import RunningException
 
 
 class AbstractPostBackup(PythonActuator, ABC):
@@ -79,8 +79,7 @@ class CleanFolderPostBackup(AbstractPostBackup):
             try:
                 os.remove(file_path)
             except OSError as e:
-                print('\033[91m' + f'ERROR: Unable to remove file [{file_path}].\nReason: {e}',
-                      file=sys.stderr)
+                raise RunningException(f'Unable to remove file [{file_path}].\nReason: {e}') from e
 
     def _dry_run_backup(self, args: dict) -> None:
         for file_path in args['files-to-remove']:
@@ -159,11 +158,10 @@ class RsyncPostBackup(AbstractPostBackup):
         return {'cmd': cmd}
 
     def _run_backup(self, args: dict) -> None:
-        process = subprocess.run(args['cmd'], capture_output=True, shell=False, text=True)
-        if process.returncode != 0:
-            print('\033[91m' + 'ERROR: Error during execution of rsync\n'
-                               f'Rsync output: {process.stderr}',
-                  file=sys.stderr)
+        with subprocess.run(args['cmd'], capture_output=True, shell=False, text=True) as process:
+            if process.returncode != 0:
+                raise RunningException('Error during execution of rsync\n'
+                                       f'Rsync output: {process.stderr}')
 
     def _dry_run_backup(self, args: dict) -> None:
         print(f'''Command [{' '.join(args['cmd'])}] would have been ran.''')

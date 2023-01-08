@@ -1,0 +1,22 @@
+---
+- name: Tar gzip clean
+  id: tar-gz-clean
+  reader:
+    module: files
+    args:
+      path: testFolder/
+      incremental-metadata-file-prefix: tar-snap
+      level-0-frequency: 'weekly'
+  transformers:
+    - gzip:
+        args:
+          level: 9
+  writer:
+    module: outputFile
+    args:
+      path: output/
+      file-name: tar-gz-clean.tar.gz
+  post-backup:
+    - cleanFolder:
+        args:
+          retention: 31

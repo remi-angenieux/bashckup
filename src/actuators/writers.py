@@ -78,8 +78,8 @@ class FileWriter(AbstractWriter):
     """
 
     def generate_backup_process(self, stdin: IO[AnyStr], stdout: IO[AnyStr] = None) -> subprocess.Popen[str]:
-        f = open(self._output_file_path, 'w')
-        return super().generate_backup_process(stdin, f)
+        with open(self._output_file_path, 'w') as f:
+            return super().generate_backup_process(stdin, f)
 
     def _pre_run_tasks(self) -> None:
         #  Create backup folder

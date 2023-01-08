@@ -32,6 +32,7 @@ bashckup = "bashckup.bashckup:main"
 [project.optional-dependencies]
 tests = [
   'assertpy',
+  'freezegun',
 ]
 
 [project.urls]

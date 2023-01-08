@@ -9,7 +9,7 @@ from yaml import Loader
 from yaml.loader import SafeLoader
 
 from src.actuators.actuators_factories import ActuatorFactory
-from src.actuators.exceptions import UserException
+from src.actuators.exceptions import UserException, RunningException
 
 yaml_schema = """
 type: array
@@ -202,24 +202,37 @@ def run_backup_plans(global_parameters: dict, backup_plans: dict):
     for (backup_id, backup_plan) in backup_plans.items():
         print('--- ' + backup_id + ' ---')
 
+        #
+        # Backup
+        #
+        error = False
         if global_parameters['dry-run'] is False:
             processes = []  # Store all processes to be able to retrieve errors
-            processes.append(backup_plan['modules']['reader'].generate_backup_process())
-            if backup_plan['modules'].get('transformers') is not None:
-                for transformer in backup_plan['modules']['transformers']:
-                    processes.append(transformer.generate_backup_process(processes[-1].stdout))
-                    processes[-2].stdout.close()  # Allow previous process to receive a SIGPIPE
+            try:
+                processes.append(backup_plan['modules']['reader'].generate_backup_process())
+                if backup_plan['modules'].get('transformers') is not None:
+                    for transformer in backup_plan['modules']['transformers']:
+                        previous_process = processes[-1]
+                        processes.append(transformer.generate_backup_process(previous_process.stdout))
+                        previous_process.stdout.close()  # Allow previous process to receive a SIGPIPE
 
-            processes.append(backup_plan['modules']['writer'].generate_backup_process(processes[-1].stdout))
-            processes[-2].stdout.close()  # Allow previous process to receive a SIGPIPE
-            for process in processes:
-                return_code = process.wait()
-                if return_code != 0:
-                    print('\033[91m' + 'ERROR: Error during execution of backup\n'
-                                       f'Command output: {process.stderr.read().decode(sys.getdefaultencoding())}\n'
-                                       f'''Command executed: {' '.join(process.args)}''',
-                          file=sys.stderr)
-                    process.stderr.close()
+                previous_process = processes[-1]
+                processes.append(backup_plan['modules']['writer'].generate_backup_process(previous_process.stdout))
+                previous_process.stdout.close()  # Allow previous process to receive a SIGPIPE
+            finally:
+                for process in processes:
+                    return_code = process.wait()
+                    if return_code != 0:
+                        error = True
+                        print('\033[91m' + 'ERROR: Error during execution of backup\n'
+                                           f'Command output: {process.stderr.read().decode(sys.getdefaultencoding())}\n'
+                                           f'''Command executed: {' '.join(process.args)}''',
+                                           f'Error code: {return_code}',
+                              file=sys.stderr)
+                    if process.stderr is not None:
+                        process.stderr.close()
+                    if process.stdout is not None:
+                        process.stdout.close()
         else:
             cmd = []
             cmd.extend(backup_plan['modules']['reader'].generate_dry_run_backup_cmd())
@@ -232,6 +245,11 @@ def run_backup_plans(global_parameters: dict, backup_plans: dict):
             cmd.extend(backup_plan['modules']['writer'].generate_dry_run_backup_cmd())
             print(f'''Command [{' '.join(cmd)}] would have been ran.''')
 
+        if error is True:
+            raise RunningException('Error during backup')
+        #
+        # Post backup
+        #
         if backup_plan['modules'].get('post-backup') is not None:
             for post_backup in backup_plan['modules']['post-backup']:
                 print('- Post backup -')
@@ -242,30 +260,37 @@ def extract_cli_parameters(args):
     args_parser = argparse.ArgumentParser(prog='Backuper', description='Command line interface to backup everything!')
     args_parser.add_argument('--dry-run', action='store_true',
                              help='Run program in dry mode, nothing is done on the system')
-    sub_parser = args_parser.add_subparsers(title='Config modes', dest='config_mode', required=True,
-                                            description='How backup rules are defined')
-    cli_parser = sub_parser.add_parser('cli', help='Get config by CLI arguments')
-    file_parser = sub_parser.add_parser('file', help='Get config from a YAML file')
-    file_parser.add_argument('--config-file', type=argparse.FileType('r'), required=True,
-                             help='Config wile to read')
-    cli_parser.add_argument('--reader-module', choices=ActuatorFactory.reader_module_name(), required=True,
-                            help='Module used to generate source backup')
-    cli_parser.add_argument('--reader-args', action=KeyValue, nargs='*', help='Arguments for the reader module')
-    cli_parser.add_argument('--transformer-module', choices=ActuatorFactory.transformer_module_name(),
-                            action='append',
-                            help='Module to transform backup, order may be used to create transformation chain')
-    cli_parser.add_argument('--transformer-args', action=AppendKeyValue, nargs='*',
-                            help='Arguments for the transform module. Number of args must match number of transforms, '
-                                 'you can use nop as empty arg')
-    cli_parser.add_argument('--writer-module', choices=ActuatorFactory.writer_module_name(), required=True,
-                            help='Module used to generate source backup')
-    cli_parser.add_argument('--writer-args', action=KeyValue, nargs='*', help='Arguments for the writer module')
-    cli_parser.add_argument('--post-backup-module', choices=ActuatorFactory.post_backup_module_name(),
-                            action='append',
-                            help='Module to some tasks after backup is done')
-    cli_parser.add_argument('--post-backup-args', action=AppendKeyValue, nargs='*',
-                            help='Arguments for the post-backup module. Number of args must match number of '
-                                 'post-backup, you can use nop as empty arg')
+
+    sub_parser = args_parser.add_subparsers(title='Mode', dest='mode', required=True,
+                                            description='Backup or restore')
+    backup_parser = sub_parser.add_parser('backup', help='Get config by CLI arguments')
+    restore_parser = sub_parser.add_parser('restore', help='Get config from a YAML file')
+
+    for parse in [backup_parser, restore_parser]:
+        sub_parser = parse.add_subparsers(title='Config mode', dest='config_mode', required=True,
+                                                description='How backup rules are defined')
+        cli_parser = sub_parser.add_parser('cli', help='Get config by CLI arguments')
+        file_parser = sub_parser.add_parser('file', help='Get config from a YAML file')
+        file_parser.add_argument('--config-file', type=argparse.FileType('r'), required=True,
+                                 help='Config wile to read')
+        cli_parser.add_argument('--reader-module', choices=ActuatorFactory.reader_module_name(), required=True,
+                                help='Module used to generate source backup')
+        cli_parser.add_argument('--reader-args', action=KeyValue, nargs='*', help='Arguments for the reader module')
+        cli_parser.add_argument('--transformer-module', choices=ActuatorFactory.transformer_module_name(),
+                                action='append',
+                                help='Module to transform backup, order may be used to create transformation chain')
+        cli_parser.add_argument('--transformer-args', action=AppendKeyValue, nargs='*',
+                                help='Arguments for the transform module. Number of args must match number of transforms, '
+                                     'you can use nop as empty arg')
+        cli_parser.add_argument('--writer-module', choices=ActuatorFactory.writer_module_name(), required=True,
+                                help='Module used to generate source backup')
+        cli_parser.add_argument('--writer-args', action=KeyValue, nargs='*', help='Arguments for the writer module')
+        cli_parser.add_argument('--post-backup-module', choices=ActuatorFactory.post_backup_module_name(),
+                                action='append',
+                                help='Module to some tasks after backup is done')
+        cli_parser.add_argument('--post-backup-args', action=AppendKeyValue, nargs='*',
+                                help='Arguments for the post-backup module. Number of args must match number of '
+                                     'post-backup, you can use nop as empty arg')
     parameters = args_parser.parse_args(args)
     return parameters
 
@@ -286,7 +311,7 @@ def main(args=None):
         backup_plans = prepare(global_parameters, configurations)
 
         run_backup_plans(global_parameters, backup_plans)
-    except UserException as e:
+    except (UserException, RunningException) as e:
         print(str(e), file=sys.stderr)
         exit(1)
 
