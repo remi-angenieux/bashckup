@@ -14,7 +14,7 @@
   writer:
     module: outputFile
     args:
-      path: output/
+      path: output/tar-gz-clean/
       file-name: tar-gz-clean.tar.gz
   post-backup:
     - cleanFolder:

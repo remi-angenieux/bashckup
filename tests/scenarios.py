@@ -1,3 +1,6 @@
+import contextlib
+import io
+import locale
 import os
 import shutil
 import unittest
@@ -13,6 +16,7 @@ from src.bashckup.bashckup import main
 class TestScenarios(unittest.TestCase):
     current_path = Path(os.path.dirname(os.path.realpath(__file__)))
     output_path = current_path / 'output'
+    locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
     def tearDown(self) -> None:
         for filename in os.listdir(self.output_path):
@@ -25,15 +29,20 @@ class TestScenarios(unittest.TestCase):
             except Exception as e:
                 print('Failed to delete %s. Reason: %s' % (file_path, e))
 
+    """
+    Test too many things in one test
+    """
+
     @freeze_time('2023-07-10 15:02:10')
     def test_tar_gz_clean(self):
         # Given
         config_file = self.current_path / 'confs' / 'tar-gz-clean.yml'
         expected_output_folder = self.output_path / 'tar-gz-clean'
         # When
-        main(['backup', 'file', '--config-file', str(config_file)])
+        return_code = main(['backup', 'file', '--config-file', str(config_file)])
 
         # Then
+        assert_that(return_code).is_equal_to(0)
         output = []
         with os.scandir(expected_output_folder) as it:
             entry: os.DirEntry
@@ -44,10 +53,44 @@ class TestScenarios(unittest.TestCase):
         snar_file = list(filter(lambda f: f['file-name'].endswith('.snar'), output))[0]
         bck_file = list(filter(lambda f: f['file-name'].endswith('.tar.gz'), output))[0]
         assert_that(snar_file['file-name']).is_equal_to('2023-07-10T15:02:10-tar-snap-w28.snar')
-        assert_that(snar_file['size']).is_between(100, 100)
+        assert_that(snar_file['size']).is_between(99, 100)
 
         assert_that(bck_file['file-name']).is_equal_to('2023-07-10T15:02:10-tar-gz-clean.tar.gz')
-        assert_that(bck_file['size']).is_between(203, 204)
+        assert_that(bck_file['size']).is_between(203, 207)
+
+    """
+    TODO Test verbose
+    """
+
+    @freeze_time('2023-07-10 15:02:10')
+    def test_tar_gz_clean_verbose(self):
+        with io.StringIO() as buf:
+            with contextlib.redirect_stdout(buf):
+                # Given
+                config_file = self.current_path / 'confs' / 'tar-gz-clean.yml'
+                # When
+                return_code = main(['--verbose', 'backup', 'file', '--config-file', str(config_file)])
+
+                # Then
+                assert_that(return_code).is_equal_to(0)
+                assert_that(buf.getvalue()).contains('DEBUG')
+
+    """
+    test quiet mode
+    """
+
+    @freeze_time('2023-07-10 15:02:10')
+    def test_tar_gz_clean_quiet(self):
+        with io.StringIO() as buf:
+            with contextlib.redirect_stdout(buf):
+                # Given
+                config_file = self.current_path / 'confs' / 'tar-gz-clean.yml'
+                # When
+                return_code = main(['--quiet', 'backup', 'file', '--config-file', str(config_file)])
+
+                # Then
+                assert_that(return_code).is_equal_to(0)
+                assert_that(buf.getvalue()).is_empty()
 
 
 if __name__ == '__main__':

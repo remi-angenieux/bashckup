@@ -1,3 +1,4 @@
+import logging
 import os
 import subprocess
 from abc import ABC
@@ -41,13 +42,9 @@ class FileWriter(AbstractWriter):
     def _get_params(self) -> None:
         validate(self._args, self.validation_schema)
 
-        path = Path(self._args['path'])
-        if not path.exists():
-            raise ParameterException(f'''Path {self._args['path']} does not exists, please create it''', 'path',
-                                     self._backup_id, self.module_name())
-        self.path = path
+        self.path = Path(self._args['path'])
         self.file_name = self._args['file-name']
-        self._output_folder = self.path / self._backup_id
+        self._output_folder = self.path
 
         # If folder doesn't exist, it will be created by _pre_run_tasks
         if self._output_folder.exists() and not self._output_folder.is_dir():
@@ -84,9 +81,10 @@ class FileWriter(AbstractWriter):
     def _pre_run_tasks(self) -> None:
         #  Create backup folder
         if self._dry_run is False:
+            logging.info('Folder [%s] created', str(self._output_folder))
             os.makedirs(self._output_folder, exist_ok=True, mode=0o750)
         else:
-            print(f'Folder [{self._output_folder}] would have been created.')
+            logging.info('Folder [%s] would have been created.', self._output_folder)
 
     def _generate_metadata(self) -> dict:
         return {'output-directory': str(self._output_folder), 'file-prefix': self._file_prefix()}

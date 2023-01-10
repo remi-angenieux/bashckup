@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 import subprocess
@@ -55,9 +56,9 @@ class CleanFolderPostBackup(AbstractPostBackup):
         file_preservation_window = max(
             [v.get('file-preservation-window') for (i, v) in self._metadata['reader'].items()])
         if self.retention < file_preservation_window:
-            print(
-                '\033[93m' + f'WARNING: retention [{self.retention}] is lower than the minimum possible '
-                             f'[{file_preservation_window}]. Retention value is override by the minimum')
+            logging.warning(
+                f'WARNING: retention [{self.retention}] is lower than the minimum possible '
+                f'[{file_preservation_window}]. Retention value is override by the minimum')
             self.retention = file_preservation_window
 
         files_to_remove = []
@@ -78,19 +79,20 @@ class CleanFolderPostBackup(AbstractPostBackup):
         for file_path in args['files-to-remove']:
             try:
                 os.remove(file_path)
+                logging.info('File [%s] removed', file_path)
             except OSError as e:
                 raise RunningException(f'Unable to remove file [{file_path}].\nReason: {e}') from e
 
     def _dry_run_backup(self, args: dict) -> None:
         for file_path in args['files-to-remove']:
-            print(f'File [{file_path}] would have been deleted.')
+            logging.info(f'File [{file_path}] would have been deleted.')
 
 
 class RsyncPostBackup(AbstractPostBackup):
     validation_schema = {'type': 'object', 'properties': {
         'ip-addr': {
             'type': 'string',
-            'description': 'Ip address of remote host'},
+            'description': 'IP address of remote host'},
         'dest-module': {
             'type': 'string',
             'description': 'Destination rsyncd module'},
@@ -140,7 +142,10 @@ class RsyncPostBackup(AbstractPostBackup):
             raise ValueError('output-directory must be defined in writer module')
         self._output_directory = output_directories[0]
 
-        cmd = 'rsync --no-inc-recursive --exclude={"lost+found/"} --delete-after'.split(' ')
+        cmd = ['rsync']
+        if self._verbose:
+            cmd.append('--progress')
+        cmd.extend('--archive --no-inc-recursive --exclude={"lost+found/"} --delete-after'.split(' '))
         if self.password_file is not None:
             cmd.extend(['--password-file', self.password_file])
         cmd.append(self._output_directory)
@@ -164,4 +169,4 @@ class RsyncPostBackup(AbstractPostBackup):
                                        f'Rsync output: {process.stderr}')
 
     def _dry_run_backup(self, args: dict) -> None:
-        print(f'''Command [{' '.join(args['cmd'])}] would have been ran.''')
+        logging.info(f'''Command [{' '.join(args['cmd'])}] would have been ran.''')

@@ -36,6 +36,7 @@ class AbstractActuator:
     def __init__(self, global_context: dict, args: dict, metadata: dict[str, dict[str, ActuatorMetadata]] = None):
         self._backup_id = global_context['backup-id']
         self._dry_run = global_context['dry-run']
+        self._verbose = global_context['verbose']
         self._args: dict = args
         self._metadata: dict[str, dict[str, ActuatorMetadata]] = metadata
 

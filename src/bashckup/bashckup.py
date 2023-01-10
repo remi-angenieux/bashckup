@@ -1,6 +1,9 @@
 import argparse
 import ast
+import datetime
+import logging
 import sys
+import time
 
 import yaml
 from jsonschema import validate
@@ -198,68 +201,88 @@ def prepare(global_parameters: dict, configurations: dict) -> dict:
     return result
 
 
-def run_backup_plans(global_parameters: dict, backup_plans: dict):
-    for (backup_id, backup_plan) in backup_plans.items():
-        print('--- ' + backup_id + ' ---')
+"""
+:returns: True if no errors appear during the backup, otherwise False.
+"""
 
-        #
-        # Backup
-        #
-        error = False
-        if global_parameters['dry-run'] is False:
-            processes = []  # Store all processes to be able to retrieve errors
-            try:
-                processes.append(backup_plan['modules']['reader'].generate_backup_process())
+
+def run_backup_plans(global_parameters: dict, backup_plans: dict) -> bool:
+    error = False
+    for (backup_id, backup_plan) in backup_plans.items():
+        try:
+            logging.info('=== Backup %s ===', backup_id)
+
+            #
+            # Backup
+            #
+            if global_parameters['dry-run'] is False:
+                processes = []  # Store all processes to be able to retrieve errors
+                try:
+                    logging.info('= Run reader %s =', backup_plan['modules']['reader'].module_name())
+                    processes.append(backup_plan['modules']['reader'].generate_backup_process())
+                    if backup_plan['modules'].get('transformers') is not None:
+                        for transformer in backup_plan['modules']['transformers']:
+                            logging.info('= Run transformer %s =', transformer.module_name())
+                            previous_process = processes[-1]
+                            processes.append(transformer.generate_backup_process(previous_process.stdout))
+                            previous_process.stdout.close()  # Allow previous process to receive a SIGPIPE
+
+                    previous_process = processes[-1]
+                    logging.info('= Run writer %s =', backup_plan['modules']['writer'].module_name())
+                    processes.append(backup_plan['modules']['writer'].generate_backup_process(previous_process.stdout))
+                    previous_process.stdout.close()  # Allow previous process to receive a SIGPIPE
+                finally:
+                    for process in processes:
+                        return_code = process.wait()
+                        if return_code != 0:
+                            error = True
+                            logging.error('ERROR: Error during execution of backup\n'
+                                          f'Command output: {process.stderr.read().decode(sys.getdefaultencoding())}\n'
+                                          f'''Command executed: {' '.join(process.args)}''',
+                                          f'Error code: {return_code}')
+                        else:
+                            stderr = process.stderr.read().decode(sys.getdefaultencoding())
+                            if stderr != '':
+                                logging.debug(stderr)
+                        if process.stderr is not None:
+                            process.stderr.close()
+                        if process.stdout is not None:
+                            process.stdout.close()
+            else:
+                cmd = []
+                cmd.extend(backup_plan['modules']['reader'].generate_dry_run_backup_cmd())
                 if backup_plan['modules'].get('transformers') is not None:
                     for transformer in backup_plan['modules']['transformers']:
-                        previous_process = processes[-1]
-                        processes.append(transformer.generate_backup_process(previous_process.stdout))
-                        previous_process.stdout.close()  # Allow previous process to receive a SIGPIPE
+                        cmd.append('|')
+                        cmd.extend(transformer.generate_dry_run_backup_cmd())
 
-                previous_process = processes[-1]
-                processes.append(backup_plan['modules']['writer'].generate_backup_process(previous_process.stdout))
-                previous_process.stdout.close()  # Allow previous process to receive a SIGPIPE
-            finally:
-                for process in processes:
-                    return_code = process.wait()
-                    if return_code != 0:
-                        error = True
-                        print('\033[91m' + 'ERROR: Error during execution of backup\n'
-                                           f'Command output: {process.stderr.read().decode(sys.getdefaultencoding())}\n'
-                                           f'''Command executed: {' '.join(process.args)}''',
-                                           f'Error code: {return_code}',
-                              file=sys.stderr)
-                    if process.stderr is not None:
-                        process.stderr.close()
-                    if process.stdout is not None:
-                        process.stdout.close()
-        else:
-            cmd = []
-            cmd.extend(backup_plan['modules']['reader'].generate_dry_run_backup_cmd())
-            if backup_plan['modules'].get('transformers') is not None:
-                for transformer in backup_plan['modules']['transformers']:
-                    cmd.append('|')
-                    cmd.extend(transformer.generate_dry_run_backup_cmd())
-
-            cmd.append('|')
-            cmd.extend(backup_plan['modules']['writer'].generate_dry_run_backup_cmd())
-            print(f'''Command [{' '.join(cmd)}] would have been ran.''')
-
-        if error is True:
-            raise RunningException('Error during backup')
-        #
-        # Post backup
-        #
-        if backup_plan['modules'].get('post-backup') is not None:
-            for post_backup in backup_plan['modules']['post-backup']:
-                print('- Post backup -')
-                post_backup.run_backup()
+                cmd.append('|')
+                cmd.extend(backup_plan['modules']['writer'].generate_dry_run_backup_cmd())
+                logging.info(f'''Command [{' '.join(cmd)}] would have been ran.''')
+            #
+            # Post backup
+            #
+            if backup_plan['modules'].get('post-backup') is not None:
+                logging.info('== Post backup ==')
+                for post_backup in backup_plan['modules']['post-backup']:
+                    logging.info('= Run post backup %s =', post_backup.module_name())
+                    post_backup.run_backup()
+        except (UserException, RunningException) as e:
+            error = True
+            logging.error(str(e))
+    return error
 
 
 def extract_cli_parameters(args):
     args_parser = argparse.ArgumentParser(prog='Backuper', description='Command line interface to backup everything!')
     args_parser.add_argument('--dry-run', action='store_true',
                              help='Run program in dry mode, nothing is done on the system')
+    args_parser.add_argument('--verbose', action='store_true',
+                             help='Run program in verbose mode to have all information printed on stdout. '
+                                  'Cannot be used together with --quiet')
+    args_parser.add_argument('--quiet', action='store_true',
+                             help='Never print into stdout, only warning and errors will be printed in stderr. '
+                                  'Cannot be used together with --verbose')
 
     sub_parser = args_parser.add_subparsers(title='Mode', dest='mode', required=True,
                                             description='Backup or restore')
@@ -268,7 +291,7 @@ def extract_cli_parameters(args):
 
     for parse in [backup_parser, restore_parser]:
         sub_parser = parse.add_subparsers(title='Config mode', dest='config_mode', required=True,
-                                                description='How backup rules are defined')
+                                          description='How backup rules are defined')
         cli_parser = sub_parser.add_parser('cli', help='Get config by CLI arguments')
         file_parser = sub_parser.add_parser('file', help='Get config from a YAML file')
         file_parser.add_argument('--config-file', type=argparse.FileType('r'), required=True,
@@ -292,14 +315,35 @@ def extract_cli_parameters(args):
                                 help='Arguments for the post-backup module. Number of args must match number of '
                                      'post-backup, you can use nop as empty arg')
     parameters = args_parser.parse_args(args)
+
+    # Checks some basics stuff
+    if parameters.verbose is True and parameters.quiet is True:
+        raise UserException("--verbose and --quiet cannot present together, choose one.")
+
     return parameters
 
 
+def configure_logging(parameters):
+    error_stream_handler = logging.StreamHandler(sys.stderr)
+    error_stream_handler.setLevel(logging.WARNING)
+    handlers = [error_stream_handler]
+    if parameters.quiet is False:
+        msg_stream_handler = logging.StreamHandler(sys.stdout)
+        if parameters.verbose is True:
+            msg_stream_handler.setLevel(logging.DEBUG)
+        else:
+            msg_stream_handler.setLevel(logging.INFO)
+        handlers.append(msg_stream_handler)
+    logging.basicConfig(format='%(levelname)s - %(message)s', handlers=handlers, level=logging.DEBUG)
+
+
 def main(args=None):
+    starting_time = time.time()
     try:
         parameters = extract_cli_parameters(args)
 
-        global_parameters = {'dry-run': parameters.dry_run}
+        configure_logging(parameters)
+        global_parameters = {'dry-run': parameters.dry_run, 'verbose': parameters.verbose}
 
         if parameters.config_mode == 'file':
             configurations = read_config_from_file(parameters.config_file)
@@ -310,10 +354,17 @@ def main(args=None):
 
         backup_plans = prepare(global_parameters, configurations)
 
-        run_backup_plans(global_parameters, backup_plans)
-    except (UserException, RunningException) as e:
-        print(str(e), file=sys.stderr)
+        have_error = run_backup_plans(global_parameters, backup_plans)
+        if have_error is True:
+            exit(1)
+        return 0
+    except Exception as e:
+        logging.error(str(e))
         exit(1)
+    finally:
+        if logging.getLogger().isEnabledFor(logging.INFO):
+            time_elapsed = datetime.timedelta(seconds=time.time() - starting_time)
+            logging.info('Backups took %s', str(time_elapsed))
 
 
 if __name__ == "__main__":

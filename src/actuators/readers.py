@@ -27,7 +27,7 @@ class FileReader(AbstractReader):
                          'properties': {
                              'path': {
                                  'type': 'string',
-                                 'description': 'Folder pather for the backup. It will create a sub-folder with the '
+                                 'description': 'Folder path for the backup. It will create a sub-folder with the '
                                                 'backup id'},
                              'incremental-metadata-file-prefix': {
                                  'type': 'string',
@@ -36,7 +36,8 @@ class FileReader(AbstractReader):
                                  'type': 'string',
                                  'enum': ['weekly', 'monthly'],
                                  'default': defaultLevel0frequency,
-                                 'description': 'When a full backup have to be done ? You have to '}
+                                 'description': 'When a full backup have to be done ? You have to choose in ['
+                                                '\'weekly\', \'monthly\']'}
                          },
                          'required': ['path'],
                          'additionalProperties': False}
@@ -73,6 +74,8 @@ class FileReader(AbstractReader):
         self._file_prefix = file_prefixes[0]
 
         cmd = ['tar']
+        if self._verbose:
+            cmd.append('--verbose')
         if self.incrementalMetadataFilePrefix is not None:
             cmd.extend(['--listed-incremental', str(self._generate_incremental_metadata_file_name())])
         cmd.extend(['-c', self.path])
@@ -125,7 +128,7 @@ class MariaDBReader(AbstractReader):
                          'properties': {
                              'database-name': {
                                  'type': 'string',
-                                 'description': 'name of mariadb database'}
+                                 'description': 'Name of mariadb database'}
                          },
                          'required': ['database-name'],
                          'additionalProperties': False}
@@ -140,5 +143,8 @@ class MariaDBReader(AbstractReader):
         self.databaseName = self._args['database-name']
 
     def _generate_backup_cmd(self) -> [str]:
-        cmd = ['mysqldump', self.databaseName]
+        cmd = ['mysqldump']
+        if self._verbose:
+            cmd.append('--verbose')
+        cmd.append(self.databaseName)
         return cmd
