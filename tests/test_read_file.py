@@ -25,6 +25,7 @@ def change_test_dir(request, monkeypatch):
 @pytest.fixture(autouse=True)
 def output_folder():
     output_path = current_path / 'output'
+    os.makedirs(output_path, exist_ok=True)
     yield output_path
     # Clear output folder
     for filename in os.listdir(output_path):
