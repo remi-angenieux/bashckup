@@ -1,0 +1,12 @@
+name: Test
+on: [push]
+jobs:
+  container-job:
+    runs-on: ubuntu-latester
+    container:
+      image: 'Dockerfile'
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run Tests
+        run: |
+          pytest        

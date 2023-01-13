@@ -238,7 +238,7 @@ def run_backup_plans(global_parameters: dict, backup_plans: dict) -> bool:
                             error = True
                             logging.error('ERROR: Error during execution of backup\n'
                                           f'Command output: {process.stderr.read().decode(sys.getdefaultencoding())}\n'
-                                          f'''Command executed: {' '.join(process.args)}''',
+                                          f'''Command executed: {' '.join(process.args)}'''
                                           f'Error code: {return_code}')
                         else:
                             stderr = process.stderr.read().decode(sys.getdefaultencoding())
