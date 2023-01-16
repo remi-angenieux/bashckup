@@ -6,8 +6,8 @@ from typing import IO, AnyStr
 
 from jsonschema.validators import validate
 
-from src.actuators.actuators import CommandActuator
-from src.actuators.exceptions import ParameterException
+from bashckup.actuators.actuators import CommandActuator
+from bashckup.actuators.exceptions import ParameterException
 
 
 class AbstractTransformer(CommandActuator, ABC):

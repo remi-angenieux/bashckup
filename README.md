@@ -163,7 +163,13 @@ Remove outdated backups
 
 ### Rsync
 
+⚠️**You have to use `password-file` if `user` needs a password to login, otherwise backup will be stuck waiting password
+from stdin** ⚠️
+
 Use `rsync` bash command and allows to push backups's folder to a remote location.
+
+`password-file` must point to a file that must be owned by the user running "bashckup", and it must be accessible only
+by him (chmod 600)
 
 #### Configuration
 

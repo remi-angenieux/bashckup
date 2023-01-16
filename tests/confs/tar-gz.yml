@@ -1,0 +1,16 @@
+---
+- name: Tar gzip
+  id: tar-gz
+  reader:
+    module: files
+    args:
+      path: testFolder/
+  transformers:
+    - gzip:
+        args:
+          level: 9
+  writer:
+    module: outputFile
+    args:
+      path: output/tar-gz/
+      file-name: tar-gz.tar.gz

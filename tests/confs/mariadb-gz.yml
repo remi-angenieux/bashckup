@@ -1,0 +1,14 @@
+---
+- name: mariaDB gz
+  id: mariadb-gz
+  reader:
+    module: mariaDBDatabase
+    args:
+      database-name: test
+  transformers:
+    - gzip
+  writer:
+    module: outputFile
+    args:
+      path: output/mariadb-gz/
+      file-name: mariadb-gz.sql.gz

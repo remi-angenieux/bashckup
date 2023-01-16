@@ -8,8 +8,8 @@ from typing import IO, AnyStr
 
 from jsonschema.validators import validate
 
-from src.actuators.actuators import CommandActuator
-from src.actuators.exceptions import ParameterException
+from bashckup.actuators.actuators import CommandActuator
+from bashckup.actuators.exceptions import ParameterException
 
 
 class AbstractWriter(CommandActuator, ABC):
@@ -63,17 +63,11 @@ class FileWriter(AbstractWriter):
         cmd = ['cat']
         return cmd
 
-    """
-    Override because this module have a special way to managed process
-    """
-
+    # Override because this module have a special way to managed process
     def generate_dry_run_backup_cmd(self) -> [str]:
         return ['>', str(self._output_file_path)]
 
-    """
-    Override because this module have a special way to managed process
-    """
-
+    # Override because this module have a special way to managed process
     def generate_backup_process(self, stdin: IO[AnyStr], stdout: IO[AnyStr] = None) -> subprocess.Popen[str]:
         with open(self._output_file_path, 'w') as f:
             return super().generate_backup_process(stdin, f)

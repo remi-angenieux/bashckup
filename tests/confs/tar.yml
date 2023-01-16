@@ -1,0 +1,12 @@
+---
+- name: Tar
+  id: tar
+  reader:
+    module: files
+    args:
+      path: testFolder/
+  writer:
+    module: outputFile
+    args:
+      path: output/tar/
+      file-name: tar.tar
