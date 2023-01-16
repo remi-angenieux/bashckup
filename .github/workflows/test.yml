@@ -30,7 +30,6 @@ jobs:
     needs: create-test-container
     runs-on: ubuntu-latest
     container:
-      using: 'docker'
       image: 'remiangenieux/test-bashckup:debian'
     steps:
       - uses: actions/checkout@v3
