@@ -7,8 +7,8 @@ from typing import IO, AnyStr
 
 from jsonschema.validators import validate
 
-from src.actuators.actuators import ActuatorMetadata, CommandActuator
-from src.actuators.exceptions import ParameterException
+from bashckup.actuators.actuators import ActuatorMetadata, CommandActuator
+from bashckup.actuators.exceptions import ParameterException
 
 
 class AbstractReader(CommandActuator, ABC):

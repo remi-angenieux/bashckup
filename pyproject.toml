@@ -7,7 +7,7 @@ build-backend = "hatchling.build"
 name = "bashckup"
 version = "0.0.1"
 authors = [
-    { name = "Rémi Angénieux", email = "remi@angenieux.info" },
+    { name = "Rémi Angénieux" },
 ]
 description = "Defines your backup strategy based on bash commands"
 readme = "README.md"

@@ -11,8 +11,8 @@ from jsonschema.exceptions import ValidationError
 from yaml import Loader
 from yaml.loader import SafeLoader
 
-from src.actuators.actuators_factories import ActuatorFactory
-from src.actuators.exceptions import UserException, RunningException
+from bashckup.actuators.actuators_factories import ActuatorFactory
+from bashckup.actuators.exceptions import UserException, RunningException
 
 yaml_schema = """
 type: array
@@ -201,12 +201,10 @@ def prepare(global_parameters: dict, configurations: dict) -> dict:
     return result
 
 
-"""
-:returns: True if no errors appear during the backup, otherwise False.
-"""
-
-
 def run_backup_plans(global_parameters: dict, backup_plans: dict) -> bool:
+    """
+    :returns: True if no errors appear during the backup, otherwise False.
+    """
     error = False
     for (backup_id, backup_plan) in backup_plans.items():
         try:
@@ -248,7 +246,7 @@ def run_backup_plans(global_parameters: dict, backup_plans: dict) -> bool:
                             process.stderr.close()
                         if process.stdout is not None:
                             process.stdout.close()
-            else:
+            else:  # Dry run
                 cmd = []
                 cmd.extend(backup_plan['modules']['reader'].generate_dry_run_backup_cmd())
                 if backup_plan['modules'].get('transformers') is not None:
@@ -266,6 +264,7 @@ def run_backup_plans(global_parameters: dict, backup_plans: dict) -> bool:
                 logging.info('== Post backup ==')
                 for post_backup in backup_plan['modules']['post-backup']:
                     logging.info('= Run post backup %s =', post_backup.module_name())
+                    # TODO manage return code and errors
                     post_backup.run_backup()
         except (UserException, RunningException) as e:
             error = True

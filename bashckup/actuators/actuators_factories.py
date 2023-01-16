@@ -1,8 +1,8 @@
-from src.actuators.actuators import ActuatorMetadata
-from src.actuators.post_backup import CleanFolderPostBackup, RsyncPostBackup, AbstractPostBackup
-from src.actuators.readers import FileReader, MariaDBReader, AbstractReader
-from src.actuators.transformers import GzipTransformer, OpenSSLTransformer, AbstractTransformer
-from src.actuators.writers import FileWriter, AbstractWriter
+from bashckup.actuators.actuators import ActuatorMetadata
+from bashckup.actuators.post_backup import CleanFolderPostBackup, RsyncPostBackup, AbstractPostBackup
+from bashckup.actuators.readers import FileReader, MariaDBReader, AbstractReader
+from bashckup.actuators.transformers import GzipTransformer, OpenSSLTransformer, AbstractTransformer
+from bashckup.actuators.writers import FileWriter, AbstractWriter
 
 
 class ActuatorFactory:

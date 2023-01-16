@@ -1,0 +1,12 @@
+---
+- name: mariaDB
+  id: mariadb
+  reader:
+    module: mariaDBDatabase
+    args:
+      database-name: test
+  writer:
+    module: outputFile
+    args:
+      path: output/mariadb/
+      file-name: mariadb.sql

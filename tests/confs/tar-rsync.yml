@@ -1,0 +1,21 @@
+---
+- name: Tar
+  id: tar
+  reader:
+    module: files
+    args:
+      path: testFolder/
+  writer:
+    module: outputFile
+    args:
+      path: output/tar-rsync/
+      file-name: tar-rsync.tar
+  post-backup:
+    - rsync:
+        args:
+          ip-addr: 127.0.0.1
+          dest-module: module1
+          dest-folder: /
+          user: user1
+          password-file: confs/user1.pwd
+

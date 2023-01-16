@@ -8,8 +8,8 @@ from pathlib import Path
 
 from jsonschema.validators import validate
 
-from src.actuators.actuators import PythonActuator, ActuatorMetadata
-from src.actuators.exceptions import RunningException
+from bashckup.actuators.actuators import PythonActuator, ActuatorMetadata
+from bashckup.actuators.exceptions import RunningException
 
 
 class AbstractPostBackup(PythonActuator, ABC):
@@ -55,7 +55,7 @@ class CleanFolderPostBackup(AbstractPostBackup):
 
         file_preservation_window = max(
             [v.get('file-preservation-window') for (i, v) in self._metadata['reader'].items()])
-        if self.retention < file_preservation_window:
+        if file_preservation_window is not None and self.retention < file_preservation_window:
             logging.warning(
                 f'WARNING: retention [{self.retention}] is lower than the minimum possible '
                 f'[{file_preservation_window}]. Retention value is override by the minimum')
@@ -163,10 +163,11 @@ class RsyncPostBackup(AbstractPostBackup):
         return {'cmd': cmd}
 
     def _run_backup(self, args: dict) -> None:
-        with subprocess.run(args['cmd'], capture_output=True, shell=False, text=True) as process:
-            if process.returncode != 0:
-                raise RunningException('Error during execution of rsync\n'
-                                       f'Rsync output: {process.stderr}')
+        process = subprocess.run(args['cmd'], capture_output=True, shell=False, text=True)
+        if process.returncode != 0:
+            raise RunningException('Error during execution of rsync\n'
+                                   f'Rsync output: {process.stderr}\n'
+                                   f'''Command executed: {' '.join(process.args)}''')
 
     def _dry_run_backup(self, args: dict) -> None:
         logging.info(f'''Command [{' '.join(args['cmd'])}] would have been ran.''')

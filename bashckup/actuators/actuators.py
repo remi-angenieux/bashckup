@@ -5,7 +5,7 @@ from typing import AnyStr, IO
 from jsonschema.exceptions import ValidationError
 from jsonschema.validators import validate
 
-from src.actuators.exceptions import ParameterException
+from bashckup.actuators.exceptions import ParameterException
 
 
 class ActuatorMetadata:
@@ -53,11 +53,8 @@ class AbstractActuator:
     def _actuator_type(self) -> str:
         pass
 
-    """
-    If an actuator needs to create something before running the backup plan, you can use this method
-    """
-
     def _pre_run_tasks(self) -> None:
+        """ If an actuator needs to create something before running the backup plan, you can use this method """
         pass
 
     def _generate_metadata(self) -> dict:
@@ -71,11 +68,8 @@ class AbstractActuator:
                                      f'''Helper: {e.schema.get('description')}''', e.json_path, self._backup_id,
                                      self.module_name()) from None
 
-    """
-    Do validation then run pre task and finally init metadata
-    """
-
     def prepare_module(self):
+        """ Do validation then run pre task and finally init metadata """
         self._validate_parameters()
         self._pre_run_tasks()
         return {self._actuator_type(): {self.module_name(): ActuatorMetadata(self._generate_metadata())}}

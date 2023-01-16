@@ -3,13 +3,16 @@ import os
 import shutil
 
 import pytest
+from _pytest.fixtures import fixture
 from assertpy import assert_that
 from pathlib import Path
 
-from src.actuators.readers import FileReader
-from src.actuators.writers import FileWriter
+from bashckup.actuators.readers import FileReader
+from bashckup.actuators.writers import FileWriter
 
 current_path = Path(os.path.dirname(os.path.realpath(__file__)))
+tests_path = current_path / '..'
+conf_path = tests_path / 'confs'
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 """
@@ -17,14 +20,16 @@ Change working directory to test folder
 """
 
 
-@pytest.fixture(autouse=True)
-def change_test_dir(request, monkeypatch):
-    monkeypatch.chdir(request.fspath.dirname)
+@fixture(autouse=True)
+def change_test_dir(monkeypatch):
+    """ Change working directory to test folder """
+    monkeypatch.chdir(tests_path)
 
 
-@pytest.fixture(autouse=True)
+@fixture(autouse=True)
 def output_folder():
-    output_path = current_path / 'output'
+    """ Create and remove a folder """
+    output_path = tests_path / 'output'
     os.makedirs(output_path, exist_ok=True)
     yield output_path
     # Clear output folder
@@ -42,8 +47,8 @@ def output_folder():
 def test_generate_dry_run_backup_cmd(output_folder):
     # Given
     global_context = {'backup-id': 'test', 'dry-run': True, 'verbose': True}
-    backup_folder = current_path / "testFolder"
-    output_folder = current_path / '..' / "output"
+    backup_folder = tests_path / 'testFolder'
+    output_folder = tests_path / 'output'
     args = {'path': str(backup_folder)}
     metadata = {}
     reader_module = FileReader(global_context, args, metadata)
@@ -59,4 +64,4 @@ def test_generate_dry_run_backup_cmd(output_folder):
     assert_that(result[0]).is_equal_to('tar')
     assert_that(result[1]).is_equal_to('--verbose')
     assert_that(result[2]).is_equal_to('-c')
-    assert_that(result[3]).ends_with('tests/testFolder')
+    assert_that(result[3]).ends_with('tests/ut/../testFolder')

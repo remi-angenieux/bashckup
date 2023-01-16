@@ -1,0 +1,14 @@
+---
+- name: Tar diff
+  id: tar-diff
+  reader:
+    module: files
+    args:
+      path: testFolder/
+      incremental-metadata-file-prefix: tar-snap
+      level-0-frequency: 'weekly'
+  writer:
+    module: outputFile
+    args:
+      path: output/tar-diff/
+      file-name: tar-diff.tar
