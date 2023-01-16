@@ -22,7 +22,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
-          file: ./.github/workflows/Dockerfile
+          context: "{{defaultContext}}:.github/workflows/"
           push: true
           tags: remiangenieux/test-bashckup:debian
 
@@ -39,4 +39,6 @@ jobs:
           pip install .[tests]
       - name: Run Tests
         run: |
+          service mariadb start
+          service rsync start
           pytest
