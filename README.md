@@ -1,4 +1,4 @@
-# Bashbackup
+# Bashbackup [![Test](https://github.com/remi-angenieux/bashckup/actions/workflows/test.yml/badge.svg)](https://github.com/remi-angenieux/bashckup/actions/workflows/test.yml) ![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/remi-angenieux/bashckup) [![PyPI version](https://badge.fury.io/py/bashckup.svg)](https://badge.fury.io/py/bashckup)
 
 It is a python application that allows you to easily describe the backup steps you want. It is possible to describe the
 steps in YAML or in CLI. The tool also allows to manage the restoration based on the backup steps.

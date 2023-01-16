@@ -7,6 +7,7 @@ on:
       - '.github/images/**'
 jobs:
   create-debian-image:
+    name: Create debian image
     runs-on: ubuntu-latest
     steps:
       - name: Set up QEMU

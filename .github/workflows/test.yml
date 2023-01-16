@@ -1,4 +1,4 @@
-name: Test
+name: Tests
 on:
   push:
     branches:
@@ -7,7 +7,8 @@ on:
     branches:
       - main
 jobs:
-  container-job:
+  tests:
+    name: Run tests on Debian
     runs-on: ubuntu-latest
     container:
       image: 'remiangenieux/test-bashckup:debian'
