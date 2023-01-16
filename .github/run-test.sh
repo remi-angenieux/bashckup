@@ -6,7 +6,7 @@ cd "$(dirname "$0")"
 # Build docker image
 IMAGE=remiangenieux/test-bashckup:debian
 CONTAINER_NAME=test-bashckup
-docker build -t "$IMAGE" ./workflows
+docker build -t "$IMAGE" ./images/debian
 docker push "$IMAGE"
 
 # Create container

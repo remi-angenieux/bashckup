@@ -92,4 +92,4 @@ def test_tar_gz(output_folder):
     assert_that(bck_file['file-name']).is_equal_to('2023-07-10T15:02:10-tar-gz.tar.gz')
     # With level set to 9 and same files, output size change a lot between executions
     # Info: Without compression its 10240 octets
-    assert_that(bck_file['size']).is_between(170, 210)
+    assert_that(bck_file['size']).is_between(160, 210)

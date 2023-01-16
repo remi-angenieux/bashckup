@@ -74,5 +74,5 @@ def test_mariadb(output_folder):
     process = subprocess.run(['mysqldump', '--compact', '--skip-extended-insert', 'test'], capture_output=True,
                              shell=False, text=True)
     sql_dump = re.sub(regex, '', process.stdout, 0, re.MULTILINE)
-    expected = (tests_path / '..' / '.github' / 'workflows' / 'database.sql').read_text()
+    expected = (tests_path / '..' / '.github' / 'images' / 'debian' / 'database.sql').read_text()
     assert_that(sql_dump).is_equal_to(expected)
