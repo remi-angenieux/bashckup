@@ -18,7 +18,7 @@ class AbstractWriter(CommandActuator, ABC):
         return 'writer'
 
     def generate_backup_process(self, stdin: IO[AnyStr], stdout: IO[AnyStr] = subprocess.DEVNULL) \
-            -> subprocess.Popen[str]:
+            -> subprocess.Popen:
         return super().generate_backup_process(stdin, stdout)
 
 
@@ -68,7 +68,7 @@ class FileWriter(AbstractWriter):
         return ['>', str(self._output_file_path)]
 
     # Override because this module have a special way to managed process
-    def generate_backup_process(self, stdin: IO[AnyStr], stdout: IO[AnyStr] = None) -> subprocess.Popen[str]:
+    def generate_backup_process(self, stdin: IO[AnyStr], stdout: IO[AnyStr] = None) -> subprocess.Popen:
         with open(self._output_file_path, 'w') as f:
             return super().generate_backup_process(stdin, f)
 

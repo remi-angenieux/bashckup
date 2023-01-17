@@ -3,7 +3,7 @@ import subprocess
 from abc import ABC
 from datetime import datetime
 from pathlib import Path
-from typing import IO, AnyStr
+from typing import IO, AnyStr, Dict
 
 from jsonschema.validators import validate
 
@@ -17,7 +17,7 @@ class AbstractReader(CommandActuator, ABC):
         return 'reader'
 
     def generate_backup_process(self, stdin: IO[AnyStr] = None, stdout: IO[AnyStr] = subprocess.PIPE) \
-            -> subprocess.Popen[str]:
+            -> subprocess.Popen:
         return super().generate_backup_process(stdin, stdout)
 
 
@@ -42,7 +42,7 @@ class FileReader(AbstractReader):
                          'required': ['path'],
                          'additionalProperties': False}
 
-    def __init__(self, global_context: dict, args: dict, metadata: dict[str, dict[str, ActuatorMetadata]] = None):
+    def __init__(self, global_context: dict, args: dict, metadata: Dict[str, Dict[str, ActuatorMetadata]] = None):
         super().__init__(global_context, args, metadata)
         self._file_prefix = None
         self._output_directory = None

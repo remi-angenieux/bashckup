@@ -58,15 +58,16 @@ def test_mariadb(output_folder):
     with os.scandir(expected_output_folder) as it:
         entry: os.DirEntry
         for entry in it:
-            output.append({'file-name': entry.name, 'size': entry.stat().st_size})
+            output.append({'file-name': entry.name})
 
-    assert_that(output).contains_only({'file-name': '2023-07-10T15:02:10-mariadb.sql', 'size': 34066})
+    assert_that(output).contains_only({'file-name': '2023-07-10T15:02:10-mariadb.sql'})
 
     # Check if dump is equal to what are inside the DB
     process = subprocess.run(['mysqldump', 'test'], capture_output=True,
                              shell=False, text=True)
-    expected = (tests_path / 'expected' / 'sqlDump.sql').read_text()
-    assert_that(process.stdout).contains(expected)
+    # Remove COLLATE because it's not present in same way one a newer version of mariadb
+    expected = (tests_path / 'expected' / 'sqlDump.sql').read_text().replace('COLLATE utf8mb4_bin ', '')
+    assert_that(process.stdout.replace('COLLATE utf8mb4_bin ', '')).contains(expected)
 
     # FIXME Use it for restore
     # Remove 'comments'
@@ -74,5 +75,6 @@ def test_mariadb(output_folder):
     process = subprocess.run(['mysqldump', '--compact', '--skip-extended-insert', 'test'], capture_output=True,
                              shell=False, text=True)
     sql_dump = re.sub(regex, '', process.stdout, 0, re.MULTILINE)
-    expected = (tests_path / '..' / '.github' / 'images' / 'debian' / 'database.sql').read_text()
-    assert_that(sql_dump).is_equal_to(expected)
+    expected = (tests_path / '..' / '.github' / 'images' / 'database.sql').read_text().replace('COLLATE utf8mb4_bin ',
+                                                                                               '')
+    assert_that(sql_dump.replace('COLLATE utf8mb4_bin ', '')).is_equal_to(expected)

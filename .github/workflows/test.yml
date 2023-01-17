@@ -10,10 +10,19 @@ jobs:
   tests:
     name: Run tests on Debian
     runs-on: ubuntu-latest
+    strategy:
+      # Because docker will be run with host network
+      max-parallel: 1
+      matrix:
+        distrib: [ "debian10", "debian11" ]
     container:
-      image: 'remiangenieux/test-bashckup:debian'
+      image: 'remiangenieux/test-bashckup:${{ matrix.distrib }}'
     steps:
       - uses: actions/checkout@v3
+#      - name: Setup Python # Set Python version
+#        uses: actions/setup-python@v4
+#        with:
+#          python-version: 3.7
       - name: Install app
         run: |
           pip install .[tests]
@@ -21,4 +30,17 @@ jobs:
         run: |
           service mariadb start
           service rsync start
-          pytest
+          pytest --cov=./bashckup --cov-report=xml:test-results-${{ matrix.distrib }}.xml
+      - name: Upload Upload coverage reports to Codecov with GitHub Action
+        if: matrix.distrib == 'debian11'
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./test-results-${{ matrix.distrib }}.xml
+      - name: Upload pytest test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: pytest-results
+          path: test-results-${{ matrix.distrib }}.xml
+        # Use always() to always run this step to publish test results when there are test failures
+        if: ${{ always() }}

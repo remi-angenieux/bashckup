@@ -1,9 +1,9 @@
 CREATE TABLE `MOCK_DATA` (
   `id` int(11) DEFAULT NULL,
-  `app_name` varchar(50) DEFAULT NULL,
-  `app_version` varchar(50) DEFAULT NULL,
-  `color_theme` varchar(50) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `app_name` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+  `app_version` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+  `color_theme` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 INSERT INTO `MOCK_DATA` VALUES (1,'Ronstring','0.7.3','Violet');
 INSERT INTO `MOCK_DATA` VALUES (2,'Andalax','0.92','Maroon');
 INSERT INTO `MOCK_DATA` VALUES (3,'Alphazap','7.3.0','Purple');

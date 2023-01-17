@@ -16,7 +16,7 @@ class AbstractTransformer(CommandActuator, ABC):
         return 'transformer'
 
     def generate_backup_process(self, stdin: IO[AnyStr], stdout: IO[AnyStr] = subprocess.PIPE) \
-            -> subprocess.Popen[str]:
+            -> subprocess.Popen:
         return super().generate_backup_process(stdin, stdout)
 
 

@@ -1,3 +1,5 @@
+from typing import Dict, List
+
 from bashckup.actuators.actuators import ActuatorMetadata
 from bashckup.actuators.post_backup import CleanFolderPostBackup, RsyncPostBackup, AbstractPostBackup
 from bashckup.actuators.readers import FileReader, MariaDBReader, AbstractReader
@@ -17,23 +19,23 @@ class ActuatorFactory:
     _post_backup = dict((x.module_name(), x.__name__) for x in postBackupModules)
 
     @staticmethod
-    def reader_module_name() -> list[str]:
+    def reader_module_name() -> List[str]:
         return [x.module_name() for x in ActuatorFactory.readerModules]
 
     @staticmethod
-    def transformer_module_name() -> list[str]:
+    def transformer_module_name() -> List[str]:
         return [x.module_name() for x in ActuatorFactory.transformerModules]
 
     @staticmethod
-    def writer_module_name() -> list[str]:
+    def writer_module_name() -> List[str]:
         return [x.module_name() for x in ActuatorFactory.writerModules]
 
     @staticmethod
-    def post_backup_module_name() -> list[str]:
+    def post_backup_module_name() -> List[str]:
         return [x.module_name() for x in ActuatorFactory.postBackupModules]
 
     def build_reader(self, global_context: dict, config: dict,
-                     metadata: dict[str, dict[str, ActuatorMetadata]]) -> AbstractReader:
+                     metadata: Dict[str, Dict[str, ActuatorMetadata]]) -> AbstractReader:
         module_class_name = self._reader.get(config['module'])
         if module_class_name is None:
             raise ValueError(f'''Module {config['module']} is not managed''')
@@ -41,7 +43,7 @@ class ActuatorFactory:
             return globals()[module_class_name](global_context, config['args'], metadata)
 
     def build_transformer(self, global_context: dict, config: dict or str,
-                          metadata: dict[str, dict[str, ActuatorMetadata]]) -> AbstractTransformer:
+                          metadata: Dict[str, Dict[str, ActuatorMetadata]]) -> AbstractTransformer:
         if type(config) is dict:
             module_name = next(iter(config))
             args = config[module_name]['args']
@@ -57,7 +59,7 @@ class ActuatorFactory:
             return globals()[module_class_name](global_context, args, metadata)
 
     def build_writer(self, global_context: dict, config: dict,
-                     metadata: dict[str, dict[str, ActuatorMetadata]]) -> AbstractWriter:
+                     metadata: Dict[str, Dict[str, ActuatorMetadata]]) -> AbstractWriter:
         module_class_name = self._writer.get(config['module'])
         if module_class_name is None:
             raise ValueError(f'''Module {config['module']} is not managed''')
@@ -65,7 +67,7 @@ class ActuatorFactory:
             return globals()[module_class_name](global_context, config['args'], metadata)
 
     def build_post_backup(self, global_context: dict, config: dict or str,
-                          metadata: dict[str, dict[str, ActuatorMetadata]]) -> AbstractPostBackup:
+                          metadata: Dict[str, Dict[str, ActuatorMetadata]]) -> AbstractPostBackup:
         if type(config) is dict:
             module_name = next(iter(config))
             args = config[module_name]['args']

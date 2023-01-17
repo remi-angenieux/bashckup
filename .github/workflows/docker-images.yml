@@ -7,8 +7,11 @@ on:
       - '.github/images/**'
 jobs:
   create-debian-image:
-    name: Create debian image
+    name: Create debian11${{ matrix.debian11-version }} image
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        debian-version: [ "10", "11" ]
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -22,6 +25,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
-          context: "{{defaultContext}}:.github/images/debian/"
+          context: "{{defaultContext}}:.github/images/"
+          file: debian${{ matrix.debian11-version }}/Dockerfile
           push: true
-          tags: remiangenieux/test-bashckup:debian
+          tags: remiangenieux/test-bashckup:debian${{ matrix.debian11-version }}
