@@ -6,6 +6,8 @@ on:
   pull_request:
     branches:
       - main
+env:
+  MAIN_JOB:
 jobs:
   tests:
     name: Run tests on Debian
@@ -19,10 +21,6 @@ jobs:
       image: 'remiangenieux/test-bashckup:${{ matrix.distrib }}'
     steps:
       - uses: actions/checkout@v3
-#      - name: Setup Python # Set Python version
-#        uses: actions/setup-python@v4
-#        with:
-#          python-version: 3.7
       - name: Install app
         run: |
           pip install .[tests]
@@ -40,7 +38,7 @@ jobs:
       - name: Upload pytest test results
         uses: actions/upload-artifact@v3
         with:
-          name: pytest-results
+          name: pytest-results-${{ matrix.distrib }}
           path: test-results-${{ matrix.distrib }}.xml
         # Use always() to always run this step to publish test results when there are test failures
         if: ${{ always() }}

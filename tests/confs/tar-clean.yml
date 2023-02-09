@@ -1,0 +1,16 @@
+---
+- name: Tar clean
+  id: tar-clean
+  reader:
+    module: files
+    args:
+      path: testFolder/
+  writer:
+    module: outputFile
+    args:
+      path: output/tar-clean/
+      file-name: tar-clean.tar
+  post-backup:
+    - cleanFolder:
+        args:
+          retention: 2

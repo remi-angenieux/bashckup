@@ -32,8 +32,8 @@ class GzipTransformer(AbstractTransformer):
                                  'description': 'Regulate the speed of compression using the specified digit #, '
                                                 'where 1 indicates the fastest compression method (less compression) '
                                                 'and 9 indicates the slowest compression method (best compression). '
-                                                'The default compression level is ' + str(
-                                     defaultLevel) + ' (that is, biased towards high compression at expense of speed).'}
+                                                'The default compression level is ' + str(defaultLevel) +
+                                                ' (that is, biased towards high compression at expense of speed).'}
                          },
                          'additionalProperties': False}
 
@@ -77,8 +77,8 @@ class OpenSSLTransformer(AbstractTransformer):
             raise ParameterException(f'''File [{self._args['password-file']}] is not readable''', 'password-file',
                                      self._backup_id, self.module_name())
         if os.stat(password_file).st_mode & 0o77 != 0o0:
-            raise ParameterException(f'''File [{self._args['password-file']}] must not be readable from group and '
-                                                                              'from others''', 'password-file',
+            raise ParameterException(f'''File [{self._args['password-file']}] must not be readable from group and '''
+                                     'from others', 'password-file',
                                      self._backup_id, self.module_name())
         self.password_file = password_file
 

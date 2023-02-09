@@ -113,11 +113,13 @@ class FileReader(AbstractReader):
             if self.level0Frequency == 'weekly':
                 week_number = today.strftime('%Y/%W')
                 window_first_day = datetime.strptime(week_number + '/1', '%Y/%W/%w')  # Year/week-number/day-of-week
-                days = (today - window_first_day).days
+                days = (today - window_first_day).days + 1
+                # +1 because we want to protect all the day, not actual time of the first day of the week
             elif self.level0Frequency == 'monthly':
                 month_number = today.strftime('%Y/%m/01')
                 window_first_day = datetime.strptime(month_number, '%Y/%m/%d')  # Year/month/day-of-month
-                days = (today - window_first_day).days
+                days = (today - window_first_day).days + 1
+                # +1 because we want to protect all the day, not actual time of the first day of the month
             else:
                 raise ValueError(f'Frequency {self.level0Frequency} is not managed')
         return {'file-preservation-window': days}

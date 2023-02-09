@@ -1,3 +1,6 @@
 - Improve testing
+  - Test CLI
+  - Test verbose
+  - Test error cases
 - Focus on error messages
 - Develop 'restore'

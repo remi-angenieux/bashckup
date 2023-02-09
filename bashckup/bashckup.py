@@ -302,8 +302,8 @@ def extract_cli_parameters(args):
                                 action='append',
                                 help='Module to transform backup, order may be used to create transformation chain')
         cli_parser.add_argument('--transformer-args', action=AppendKeyValue, nargs='*',
-                                help='Arguments for the transform module. Number of args must match number of transforms, '
-                                     'you can use nop as empty arg')
+                                help='Arguments for the transform module. Number of args must match number of '
+                                     'transforms, you can use nop as empty arg')
         cli_parser.add_argument('--writer-module', choices=ActuatorFactory.writer_module_name(), required=True,
                                 help='Module used to generate source backup')
         cli_parser.add_argument('--writer-args', action=KeyValue, nargs='*', help='Arguments for the writer module')

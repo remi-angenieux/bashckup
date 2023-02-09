@@ -1,0 +1,16 @@
+---
+- name: Tar crypt
+  id: tar-crypt
+  reader:
+    module: files
+    args:
+      path: testFolder/
+  transformers:
+    - crypt:
+        args:
+          password-file: confs/crypt-password.pwd
+  writer:
+    module: outputFile
+    args:
+      path: output/tar-crypt/
+      file-name: tar-crypt.tar.crypt

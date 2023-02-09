@@ -10,7 +10,7 @@ from typing import Dict
 from jsonschema.validators import validate
 
 from bashckup.actuators.actuators import PythonActuator, ActuatorMetadata
-from bashckup.actuators.exceptions import RunningException
+from bashckup.actuators.exceptions import RunningException, ParameterException
 
 
 class AbstractPostBackup(PythonActuator, ABC):
@@ -54,6 +54,7 @@ class CleanFolderPostBackup(AbstractPostBackup):
             raise ValueError('output-directory must be defined in writer module')
         self._output_directory = Path(output_directories[0])
 
+        self.retention = 0
         file_preservation_window = max(
             [v.get('file-preservation-window') for (i, v) in self._metadata['reader'].items()])
         if file_preservation_window is not None and self.retention < file_preservation_window:
@@ -72,7 +73,7 @@ class CleanFolderPostBackup(AbstractPostBackup):
                     continue
                 creation_date = datetime.fromisoformat(matches.group(1))
                 diff_days = (today - creation_date).days
-                if diff_days > self.retention:
+                if diff_days >= self.retention:
                     files_to_remove.append(entry.path)
         return {'files-to-remove': files_to_remove}
 
@@ -128,13 +129,16 @@ class RsyncPostBackup(AbstractPostBackup):
         if self.password_file is not None:
             password_file = Path(self._args['password-file'])
             if not password_file.is_file():
-                raise Exception('password-file [' + self._args['password-file'] + '] doesn\'t exists')
+                raise ParameterException('password-file [' + self._args['password-file'] + '] doesn\'t exists',
+                                         'password-file', self._backup_id, self.module_name())
             if not os.access(password_file, os.R_OK):
-                raise Exception('password-file [' + self._args['password-file'] + '] is not readable')
+                raise ParameterException('password-file [' + self._args['password-file'] + '] is not readable',
+                                         'password-file', self._backup_id, self.module_name())
             if os.stat(password_file).st_mode & 0o77 != 0o0:
-                raise Exception(
+                raise ParameterException(
                     'password-file [' + self._args['password-file'] + '] must not be readable from group and '
-                                                                      'from others')
+                                                                      'from others', 'password-file', self._backup_id,
+                    self.module_name())
 
     def _prepare_run_backup(self) -> dict:
         # Validate metadata
