@@ -1,6 +1,6 @@
 import subprocess
 from abc import abstractmethod
-from typing import AnyStr, IO
+from typing import AnyStr, IO, Dict
 
 from jsonschema.exceptions import ValidationError
 from jsonschema.validators import validate
@@ -33,12 +33,12 @@ class ActuatorMetadata:
 
 
 class AbstractActuator:
-    def __init__(self, global_context: dict, args: dict, metadata: dict[str, dict[str, ActuatorMetadata]] = None):
+    def __init__(self, global_context: dict, args: dict, metadata: Dict[str, Dict[str, ActuatorMetadata]] = None):
         self._backup_id = global_context['backup-id']
         self._dry_run = global_context['dry-run']
         self._verbose = global_context['verbose']
         self._args: dict = args
-        self._metadata: dict[str, dict[str, ActuatorMetadata]] = metadata
+        self._metadata: Dict[str, Dict[str, ActuatorMetadata]] = metadata
 
     @staticmethod
     @abstractmethod
@@ -85,7 +85,7 @@ class CommandActuator(AbstractActuator):
             raise Exception('You are not allowed to call this function outside dry-run')
         return self._generate_backup_cmd()
 
-    def generate_backup_process(self, stdin: IO[AnyStr], stdout: IO[AnyStr]) -> subprocess.Popen[str]:
+    def generate_backup_process(self, stdin: IO[AnyStr], stdout: IO[AnyStr]) -> subprocess.Popen:
         if self._dry_run is True:
             raise Exception('You are not allowed to call this function in dry-run')
         return subprocess.Popen(self._generate_backup_cmd(), shell=False, stdin=stdin, stdout=stdout,

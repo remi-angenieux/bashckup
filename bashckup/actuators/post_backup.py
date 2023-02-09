@@ -5,6 +5,7 @@ import subprocess
 from abc import ABC
 from datetime import datetime
 from pathlib import Path
+from typing import Dict
 
 from jsonschema.validators import validate
 
@@ -28,7 +29,7 @@ class CleanFolderPostBackup(AbstractPostBackup):
                          'additionalProperties': False}
     fileRegex = re.compile(r'^(\d+-\d+-\d+T\d+:\d+:\d+)')
 
-    def __init__(self, global_context: dict, args: dict, metadata: dict[str, dict[str, ActuatorMetadata]] = None):
+    def __init__(self, global_context: dict, args: dict, metadata: Dict[str, Dict[str, ActuatorMetadata]] = None):
         super().__init__(global_context, args, metadata)
         self.retention = None
         self._output_directory = None
@@ -108,7 +109,7 @@ class RsyncPostBackup(AbstractPostBackup):
                          'required': ['ip-addr', 'dest-folder', 'user'],
                          'additionalProperties': False}
 
-    def __init__(self, global_context: dict, args: dict, metadata: dict[str, dict[str, ActuatorMetadata]] = None):
+    def __init__(self, global_context: dict, args: dict, metadata: Dict[str, Dict[str, ActuatorMetadata]] = None):
         super().__init__(global_context, args, metadata)
         self._output_directory = None
 

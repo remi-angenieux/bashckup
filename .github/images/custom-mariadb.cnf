@@ -1,0 +1,3 @@
+[mysqld]
+# No network to be able to run 2 dockers with 'host' as network
+skip-networking

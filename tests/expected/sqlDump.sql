@@ -18,10 +18,10 @@ DROP TABLE IF EXISTS `MOCK_DATA`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `MOCK_DATA` (
   `id` int(11) DEFAULT NULL,
-  `app_name` varchar(50) DEFAULT NULL,
-  `app_version` varchar(50) DEFAULT NULL,
-  `color_theme` varchar(50) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `app_name` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+  `app_version` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+  `color_theme` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --

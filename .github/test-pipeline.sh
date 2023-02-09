@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-act --secret-file .github/.secret-file.env
+act -j tests --secret-file .github/.secret-file.env

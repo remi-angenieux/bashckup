@@ -1,8 +1,17 @@
-FROM debian:bullseye
+FROM debian:11
 
-RUN apt update && apt upgrade
-
-RUN apt install -y locales \
+# Usefull for actions/setup-python@v4
+#COPY debian11/lsb-release /etc/lsb-release
+# Maybe remove python and use action actions/setup-python@v4
+# Nodejs is neeeded for codecov and setup-python
+# Update setuptools otherwise assertpy fails
+RUN apt update \
+    && apt upgrade -y \
+    && apt install -y curl \
+    && curl -fsSL https://deb.nodesource.com/setup_19.x | bash - \
+    && apt install -y locales \
+    nodejs \
+    git \
     python3 \
     python3-pip  \
     rsync  \
@@ -10,13 +19,17 @@ RUN apt install -y locales \
     openssl  \
     ssh  \
     mariadb-server \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --upgrade pip \
+    && pip install setuptools --upgrade
 
 # Mariadb
 COPY database.sql .
+COPY custom-mariadb.cnf /etc/mysql/mariadb.conf.d/
 RUN service mariadb start \
-    && echo "CREATE DATABASE test;" | mysql \
-    && mysql test < database.sql
+    && echo "CREATE DATABASE test CHARACTER SET utf8mb4 COLLATE utf8mb4_bin;" | mysql \
+    && mysql test < database.sql \
+    && service mariadb stop
 
 # Rsync
 COPY rsyncd.conf rsyncd.secrets /etc/
