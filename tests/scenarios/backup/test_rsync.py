@@ -13,7 +13,7 @@ from bashckup.bashckup import main
 
 current_path = Path(os.path.dirname(os.path.realpath(__file__)))
 tests_path = current_path / '..' / '..'
-conf_path = tests_path / 'confs'
+conf_path = tests_path / 'resources' / 'confs'
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 
@@ -50,8 +50,8 @@ def test_tar_rsync_password_readable_for_everyone(caplog, output_folder):
     assert_that(caplog.record_tuples).contains(
         ('root', logging.ERROR, 'ERROR: On the [rsync] module\n'
                                 'Validation error on parameter: password-file\n'
-                                'Reason: password-file [confs/user1.pwd] must not be readable from group and from '
-                                'others'))
+                                'Reason: password-file [resources/confs/user1.pwd] must not be readable from group '
+                                'and from others'))
 
 
 @freeze_time('2023-07-10 15:02:10')

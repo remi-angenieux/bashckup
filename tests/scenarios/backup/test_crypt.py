@@ -13,7 +13,7 @@ from bashckup.bashckup import main
 
 current_path = Path(os.path.dirname(os.path.realpath(__file__)))
 tests_path = current_path / '..' / '..'
-conf_path = tests_path / 'confs'
+conf_path = tests_path / 'resources' / 'confs'
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 """
@@ -44,7 +44,6 @@ def test_tar_crypt_password_readable_for_everyone(caplog, output_folder):
     caplog.set_level(logging.DEBUG)
     # Given
     config_file = conf_path / 'tar-crypt.yml'
-    expected_output_folder = output_folder / 'tar-crypt'
     # When
     with pytest.raises(SystemExit) as e:
         main(['backup', 'file', '--config-file', str(config_file)])
@@ -55,8 +54,8 @@ def test_tar_crypt_password_readable_for_everyone(caplog, output_folder):
     assert_that(caplog.record_tuples).contains(
         ('root', logging.ERROR, 'ERROR: On the [crypt] module\n'
                                 'Validation error on parameter: password-file\n'
-                                'Reason: File [confs/crypt-password.pwd] must not be readable from group and from '
-                                'others'))
+                                'Reason: File [resources/confs/crypt-password.pwd] must not be readable from group '
+                                'and from others'))
 
 
 @freeze_time('2023-07-10 15:02:10')

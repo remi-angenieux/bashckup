@@ -4,7 +4,7 @@
   reader:
     module: files
     args:
-      path: testFolder/
+      path: resources/testFolder/
       incremental-metadata-file-prefix: tar-snap
       level-0-frequency: 'weekly'
   writer:

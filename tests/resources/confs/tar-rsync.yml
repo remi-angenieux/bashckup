@@ -4,7 +4,7 @@
   reader:
     module: files
     args:
-      path: testFolder/
+      path: resources/testFolder/
   writer:
     module: outputFile
     args:
@@ -17,5 +17,5 @@
           dest-module: module1
           dest-folder: /
           user: user1
-          password-file: confs/user1.pwd
+          password-file: resources/confs/user1.pwd
 

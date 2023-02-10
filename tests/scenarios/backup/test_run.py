@@ -9,7 +9,7 @@ from assertpy import assert_that
 
 current_path = Path(os.path.dirname(os.path.realpath(__file__)))
 tests_path = current_path / '..' / '..'
-conf_path = tests_path / 'confs'
+conf_path = tests_path / 'resources' / 'confs'
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 """

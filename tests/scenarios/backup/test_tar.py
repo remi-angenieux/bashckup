@@ -3,7 +3,6 @@ import os
 import shutil
 from pathlib import Path
 
-from _pytest.fixtures import fixture
 from assertpy import assert_that
 from freezegun import freeze_time
 
@@ -11,8 +10,8 @@ from bashckup.bashckup import main
 
 current_path = Path(os.path.dirname(os.path.realpath(__file__)))
 tests_path = current_path / '..' / '..'
-conf_path = tests_path / 'confs'
-files_path = tests_path / 'files'
+conf_path = tests_path / 'resources' / 'confs'
+files_path = tests_path / 'resources' / 'tar'
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 

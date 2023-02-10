@@ -50,7 +50,7 @@ Config file:
   reader:
     module: files
     args:
-      path: testfolder/
+      path: resources/testFolder/
       incremental-metadata-file-prefix: tar-snap
       level-0-frequency: 'weekly'
   transformers:

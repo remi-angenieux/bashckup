@@ -13,7 +13,7 @@ from bashckup.bashckup import main
 
 current_path = Path(os.path.dirname(os.path.realpath(__file__)))
 tests_path = current_path / '..' / '..'
-conf_path = tests_path / 'confs'
+conf_path = tests_path / 'resources' / 'confs'
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 
@@ -42,7 +42,7 @@ def test_mariadb(output_folder):
     # Remove COLLATE because it's not present in same way one a newer version of mariadb
     actual = (expected_output_folder / '2023-07-10T15:02:10-mariadb.sql').read_text().replace('COLLATE utf8mb4_bin ',
                                                                                               '')
-    expected = (tests_path / 'expected' / 'sqlDump.sql').read_text().replace('COLLATE utf8mb4_bin ', '')
+    expected = (tests_path / 'resources' / 'mariadb' / 'sqlDump.sql').read_text().replace('COLLATE utf8mb4_bin ', '')
     assert_that(actual).contains(expected)
 
     # FIXME Use it for restore

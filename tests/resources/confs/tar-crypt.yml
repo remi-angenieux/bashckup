@@ -4,11 +4,11 @@
   reader:
     module: files
     args:
-      path: testFolder/
+      path: resources/testFolder/
   transformers:
     - crypt:
         args:
-          password-file: confs/crypt-password.pwd
+          password-file: resources/confs/crypt-password.pwd
   writer:
     module: outputFile
     args:
