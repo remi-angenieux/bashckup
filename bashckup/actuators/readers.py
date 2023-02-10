@@ -7,6 +7,7 @@ from typing import IO, AnyStr, Dict
 
 from jsonschema.validators import validate
 
+from bashckup.actuators import writers
 from bashckup.actuators.actuators import ActuatorMetadata, CommandActuator
 from bashckup.actuators.exceptions import ParameterException
 
@@ -64,6 +65,20 @@ class FileReader(AbstractReader):
 
     def _generate_backup_cmd(self) -> [str]:
         # Validate metadata
+        self._validate_register_metadata()
+
+        cmd = ['tar']
+        if self._verbose:
+            cmd.append('--verbose')
+        if self.incrementalMetadataFilePrefix is not None:
+            cmd.extend(['--listed-incremental', str(self._generate_incremental_metadata_file_name())])
+        cmd.extend(['--create', self.path])
+        return cmd
+
+    def _validate_register_metadata(self):
+        """
+        Validates metadata and register attributes with it
+        """
         output_directories = [v.get('output-directory') for (i, v) in self._metadata['writer'].items()]
         if len(output_directories) != 1:  # Because we need at least one, and it can not be greater than 1
             raise ValueError('output-directory must be defined in writer module')
@@ -72,22 +87,18 @@ class FileReader(AbstractReader):
         if len(file_prefixes) != 1:  # Because we need at least one, and it can not be greater than 1
             raise ValueError('file-prefix must be defined in writer module')
         self._file_prefix = file_prefixes[0]
-
-        cmd = ['tar']
-        if self._verbose:
-            cmd.append('--verbose')
-        if self.incrementalMetadataFilePrefix is not None:
-            cmd.extend(['--listed-incremental', str(self._generate_incremental_metadata_file_name())])
-        cmd.extend(['-c', self.path])
-        return cmd
+        backups_datetime = [v.get('backup-datetime') for (i, v) in self._metadata['writer'].items()]
+        if len(backups_datetime) != 1:  # Because we need at least one, and it can not be greater than 1
+            raise ValueError('backup-datetime must be defined in writer module')
+        self._backup_datetime = datetime.fromisoformat(backups_datetime[0])
 
     def _generate_incremental_metadata_file_name(self) -> Path:
         # self._file_prefix
         file_name = self.incrementalMetadataFilePrefix
         if self.level0Frequency == 'weekly':
-            file_name += '-w' + datetime.today().strftime('%V')
+            file_name += '-w' + self._backup_datetime.strftime('%V')
         elif self.level0Frequency == 'monthly':
-            file_name += '-m' + datetime.today().strftime('%m')
+            file_name += '-m' + self._backup_datetime.strftime('%m')
         else:
             raise ValueError(f'Frequency {self.level0Frequency} is not managed')
         file_name += '.snar'
@@ -108,21 +119,44 @@ class FileReader(AbstractReader):
 
     def _generate_metadata(self) -> dict:
         days = 0
-        if self.incrementalMetadataFilePrefix is not None:  # Incremental backup, so we need to keep level0 backup
-            today = datetime.today()
+        # Incremental backup, so we need to keep level0 backup
+        if self._isBackup and self.incrementalMetadataFilePrefix is not None:
             if self.level0Frequency == 'weekly':
-                week_number = today.strftime('%Y/%W')
+                # We can use datetime.today() instead of datetime set by writer because we add 1 day of margin
+                # And in this part of code we can not have datetime set by writer
+                week_number = datetime.today().strftime('%Y/%W')
                 window_first_day = datetime.strptime(week_number + '/1', '%Y/%W/%w')  # Year/week-number/day-of-week
-                days = (today - window_first_day).days + 1
+                days = (datetime.today() - window_first_day).days + 1
                 # +1 because we want to protect all the day, not actual time of the first day of the week
             elif self.level0Frequency == 'monthly':
-                month_number = today.strftime('%Y/%m/01')
+                month_number = datetime.today().strftime('%Y/%m/01')
                 window_first_day = datetime.strptime(month_number, '%Y/%m/%d')  # Year/month/day-of-month
-                days = (today - window_first_day).days + 1
+                days = (datetime.today() - window_first_day).days + 1
                 # +1 because we want to protect all the day, not actual time of the first day of the month
             else:
                 raise ValueError(f'Frequency {self.level0Frequency} is not managed')
         return {'file-preservation-window': days}
+
+    def _generate_restore_cmd(self) -> [str]:
+        # Validate metadata
+        self._validate_register_metadata()
+        cmd = ['tar']
+        if self._verbose:
+            cmd.append('--verbose')
+        if self.incrementalMetadataFilePrefix is not None:
+            cmd.extend(['--listed-incremental', str(self._generate_incremental_metadata_file_name())])
+        cmd.extend(['--extract', self.path])
+
+        return cmd
+
+    # Override because we need to back up files before the restoration
+    def generate_restore_process(self, stdin: IO[AnyStr] = None,
+                                 stdout: IO[AnyStr] = subprocess.PIPE) -> subprocess.Popen:
+        # Back up src files before restoration
+        src_path = Path(self.path)
+        backup_path = src_path.parents[0] / (src_path.name + '-bck')
+        os.rename(src_path, backup_path)
+        return super().generate_backup_process(stdin, stdout)
 
 
 class MariaDBReader(AbstractReader):
@@ -146,6 +180,13 @@ class MariaDBReader(AbstractReader):
 
     def _generate_backup_cmd(self) -> [str]:
         cmd = ['mysqldump']
+        if self._verbose:
+            cmd.append('--verbose')
+        cmd.append(self.databaseName)
+        return cmd
+
+    def _generate_restore_cmd(self) -> [str]:
+        cmd = ['mysql']
         if self._verbose:
             cmd.append('--verbose')
         cmd.append(self.databaseName)

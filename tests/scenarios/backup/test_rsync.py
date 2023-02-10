@@ -12,19 +12,15 @@ from freezegun import freeze_time
 from bashckup.bashckup import main
 
 current_path = Path(os.path.dirname(os.path.realpath(__file__)))
-tests_path = current_path / '..'
+tests_path = current_path / '..' / '..'
 conf_path = tests_path / 'confs'
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
-"""
-Depends on TAR tests
-"""
-
 
 @fixture
-def change_crypt_password_file_rights():
+def change_user1_password_file_rights():
     """ Change password file right and the reset to default """
-    user1_password_file = conf_path / 'crypt-password.pwd'
+    user1_password_file = conf_path / 'user1.pwd'
     file_stat = os.stat(user1_password_file)
     file_mod = file_stat.st_mode
     file_owner = file_stat.st_uid
@@ -37,14 +33,13 @@ def change_crypt_password_file_rights():
 
 
 @freeze_time('2023-07-10 15:02:10')
-def test_tar_crypt_password_readable_for_everyone(caplog, output_folder):
+def test_tar_rsync_password_readable_for_everyone(caplog, output_folder):
     """
     Goal: Test file permission check on password file
     """
     caplog.set_level(logging.DEBUG)
     # Given
-    config_file = conf_path / 'tar-crypt.yml'
-    expected_output_folder = output_folder / 'tar-crypt'
+    config_file = conf_path / 'tar-rsync.yml'
     # When
     with pytest.raises(SystemExit) as e:
         main(['backup', 'file', '--config-file', str(config_file)])
@@ -53,36 +48,39 @@ def test_tar_crypt_password_readable_for_everyone(caplog, output_folder):
     assert e.type == SystemExit
     assert e.value.code == 1
     assert_that(caplog.record_tuples).contains(
-        ('root', logging.ERROR, 'ERROR: On the [crypt] module\n'
+        ('root', logging.ERROR, 'ERROR: On the [rsync] module\n'
                                 'Validation error on parameter: password-file\n'
-                                'Reason: File [confs/crypt-password.pwd] must not be readable from group and from '
+                                'Reason: password-file [confs/user1.pwd] must not be readable from group and from '
                                 'others'))
 
 
 @freeze_time('2023-07-10 15:02:10')
-def test_tar_crypt_password(output_folder, change_crypt_password_file_rights):
+def test_tar_rsync(change_user1_password_file_rights, output_folder):
     """
-    GOAL: Test CRYPT
+    Goal: Test RSYNC
     """
     # Given
-    config_file = conf_path / 'tar-crypt.yml'
-    expected_output_folder = output_folder / 'tar-crypt'
+    config_file = conf_path / 'tar-rsync.yml'
+    expected_output_folder = output_folder / 'tar-rsync'
     # When
     return_code = main(['backup', 'file', '--config-file', str(config_file)])
 
     # Then
     assert_that(return_code).is_equal_to(0)
+
+    # Check on client side
     output = []
     with os.scandir(expected_output_folder) as it:
         entry: os.DirEntry
         for entry in it:
             output.append({'file-name': entry.name, 'size': entry.stat().st_size})
 
-    assert_that(output).is_length(1)
-    bck_file = output[0]
-    assert_that(bck_file['file-name']).is_equal_to('2023-07-10T15:02:10-tar-crypt.tar.crypt')
-    # Info: Without encryption its 10240 octets
-    assert_that(bck_file['size']).is_between(10240, 10280)
+    assert_that(output).contains_only({'file-name': '2023-07-10T15:02:10-tar-rsync.tar', 'size': 10240})
+    # Check on server side
+    output = []
+    with os.scandir('/bck/folder1/tar-rsync') as it:
+        entry: os.DirEntry
+        for entry in it:
+            output.append({'file-name': entry.name, 'size': entry.stat().st_size})
 
-    actual = (expected_output_folder / '2023-07-10T15:02:10-tar-crypt.tar.crypt').read_text(errors='ignore')
-    assert_that(actual).starts_with('Salted__')
+    assert_that(output).contains_only({'file-name': '2023-07-10T15:02:10-tar-rsync.tar', 'size': 10240})

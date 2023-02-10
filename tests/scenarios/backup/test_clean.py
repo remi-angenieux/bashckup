@@ -11,7 +11,7 @@ from freezegun import freeze_time
 from bashckup.bashckup import main
 
 current_path = Path(os.path.dirname(os.path.realpath(__file__)))
-tests_path = current_path / '..'
+tests_path = current_path / '..' / '..'
 conf_path = tests_path / 'confs'
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
@@ -42,7 +42,7 @@ def test_tar_clean(output_folder):
 
     assert_that(output).contains_only({'file-name': '2023-07-09T15:02:10-tar-clean.tar', 'size': 10240},
                                       {'file-name': '2023-07-08T15:02:10-tar.tar', 'size': 7},
-                                      {'file-name': '2023-07-07T15:02:11-tar.tar', 'size': 7})
+                                      {'file-name': '2023-07-08T15:02:11-tar.tar', 'size': 7})
 
 
 @freeze_time('2023-07-09 15:02:10')

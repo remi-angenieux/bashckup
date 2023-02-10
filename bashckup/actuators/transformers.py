@@ -50,6 +50,10 @@ class GzipTransformer(AbstractTransformer):
         cmd = ['gzip', '-' + str(self.level)]
         return cmd
 
+    def _generate_restore_cmd(self) -> [str]:
+        cmd = ['unzip']
+        return cmd
+
 
 class OpenSSLTransformer(AbstractTransformer):
     defaultLevel = 6
@@ -84,4 +88,8 @@ class OpenSSLTransformer(AbstractTransformer):
 
     def _generate_backup_cmd(self) -> [str]:
         cmd = ['openssl', 'enc', '-e', '-aes-256-cbc', '-pbkdf2', '-kfile', str(self.password_file)]
+        return cmd
+
+    def _generate_restore_cmd(self) -> [str]:
+        cmd = ['openssl', 'enc', '-d', '-aes-256-cbc', '-pbkdf2', '-kfile', str(self.password_file)]
         return cmd

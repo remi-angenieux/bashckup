@@ -342,7 +342,8 @@ def main(args=None):
         parameters = extract_cli_parameters(args)
 
         configure_logging(parameters)
-        global_parameters = {'dry-run': parameters.dry_run, 'verbose': parameters.verbose}
+        global_parameters = {'dry-run': parameters.dry_run, 'verbose': parameters.verbose,
+                             'backup': parameters.mode == 'backup'}
 
         if parameters.config_mode == 'file':
             configurations = read_config_from_file(parameters.config_file)

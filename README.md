@@ -11,10 +11,16 @@ pip install bashckup
 
 # Examples
 
-## With YAML file
+## Backup with YAML file
 
 ```bash
 bashckup backup file --config-file /home/bashckup/config.yml
+```
+
+## Restoration with YAML file
+
+```bash
+bashckup restore file --config-file /home/bashckup/config.yml
 ```
 
 Config file:
@@ -71,11 +77,28 @@ Config file:
 
 </details>
 
-## With CLI inputs
+## Backup with CLI inputs
 
 ```bash
 bashckup backup cli --reader-module mariaDBDatabase --reader-args database-name='myDatabase' --transformer-module gzip --transformer-args nop --transformer-module crypt --transformer-args password-file=password-safe.txt  --writer-module outputFile --writer-args path='.' file-name='output.sql.gz'
 ```
+
+## restoration with CLI inputs
+
+```bash
+bashckup restore cli --reader-module mariaDBDatabase --reader-args database-name='myDatabase' --transformer-module gzip --transformer-args nop --transformer-module crypt --transformer-args password-file=password-safe.txt  --writer-module outputFile --writer-args path='.' file-name='output.sql.gz'
+```
+
+# Concept
+
+## Backup
+![backup schema](docs/backup.jpg)
+
+
+## Logical architecture
+![logical architecture](docs/logical-architecture.jpg)
+Context is share between all actuators (Reader/Transformer/Writer/Post backup).
+This makes it possible to adapt the behavior of an actuator to the others without direct dependence (e.g.: 'cleanFolder' can retrieve the output folder defined by 'fileWriter')
 
 # Table of content
 
@@ -102,6 +125,10 @@ Use `tar` bash command and allows to save files from file systems
 | incremental-metadata-file-prefix | Name of metadata-file used to store difference between backups                   | False    | -             |
 | level-0-frequency                | When a full backup have to be done ? You have to choose in ['weekly', 'monthly'] | False    | weekly        |
 
+#### Restoration
+It renames the name of the folder defined by 'path' (adds '-bck') to keep the files present on the server.
+If the restoration fails you can go back by removing the '-bck' added to the folder name
+
 ### MariaDB database
 
 ⚠️**You have to be root to use it, no authentication method is available yet** ⚠️
@@ -113,6 +140,9 @@ Use `mysqldump` bash command and allows to generate a backup based on SQL instru
 | Parameter name | Description              | Required | Default value |
 |----------------|--------------------------|----------|---------------|
 | database-name  | Name of mariadb database | True     | -             |
+
+#### Restoration
+⚠️**It deletes the old database, if the restoration fails it is not possible to go back**⚠️
 
 ## Transformers
 

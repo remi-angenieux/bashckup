@@ -21,7 +21,12 @@ class ActuatorMetadata:
                    'file-prefix': {
                        'type': 'string',
                        'description': 'Prefix of each files (with timestamp)'},
-                   'additionalProperties': False}
+                   'backup-datetime': {
+                       'type': 'string',
+                       'format': 'date-time',
+                       'description': 'Date time of the backup'}
+               },
+               'additionalProperties': False
                }
 
     def __init__(self, metadata: dict):
@@ -37,6 +42,8 @@ class AbstractActuator:
         self._backup_id = global_context['backup-id']
         self._dry_run = global_context['dry-run']
         self._verbose = global_context['verbose']
+        self._isBackup = global_context['backup']
+        self._isRestore = not global_context['backup']
         self._args: dict = args
         self._metadata: Dict[str, Dict[str, ActuatorMetadata]] = metadata
 
@@ -91,10 +98,30 @@ class CommandActuator(AbstractActuator):
         return subprocess.Popen(self._generate_backup_cmd(), shell=False, stdin=stdin, stdout=stdout,
                                 stderr=subprocess.PIPE)
 
+    @abstractmethod
+    def _generate_restore_cmd(self) -> [str]:
+        pass
+
+    def generate_dry_run_restore_cmd(self) -> [str]:
+        if self._dry_run is False:
+            raise Exception('You are not allowed to call this function outside dry-run')
+        return self._generate_restore_cmd()
+
+    def generate_restore_process(self, stdin: IO[AnyStr], stdout: IO[AnyStr]) -> subprocess.Popen:
+        if self._dry_run is True:
+            raise Exception('You are not allowed to call this function in dry-run')
+        return subprocess.Popen(self._generate_restore_cmd(), shell=False, stdin=stdin, stdout=stdout,
+                                stderr=subprocess.PIPE)
+
 
 class PythonActuator(AbstractActuator):
     @abstractmethod
     def _prepare_run_backup(self) -> dict:
+        """
+        Compute all data useful for running backup
+        This data can be used to run the backup or write the verbose
+        :return: Dict of computed elements
+        """
         pass
 
     @abstractmethod
@@ -111,3 +138,27 @@ class PythonActuator(AbstractActuator):
             self._dry_run_backup(args)
         else:
             self._run_backup(args)
+
+    @abstractmethod
+    def _prepare_run_restore(self) -> dict:
+        """
+        Compute all data useful for running restoration
+        This data can be used to run the restoration or write the verbose
+        :return: Dict of computed elements
+        """
+        pass
+
+    @abstractmethod
+    def _run_restore(self, args: dict) -> None:
+        pass
+
+    @abstractmethod
+    def _dry_run_restore(self, args: dict) -> None:
+        pass
+
+    def run_restore(self) -> None:
+        args = self._prepare_run_restore()
+        if self._dry_run is True:
+            self._dry_run_restore(args)
+        else:
+            self._run_restore(args)

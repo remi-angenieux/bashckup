@@ -22,7 +22,7 @@ Change working directory to test folder
 
 def test_generate_dry_run_backup_cmd(output_folder):
     # Given
-    global_context = {'backup-id': 'test', 'dry-run': True, 'verbose': True}
+    global_context = {'backup-id': 'test', 'dry-run': True, 'verbose': True, 'backup': True}
     backup_folder = tests_path / 'testFolder'
     output_folder = tests_path / 'output'
     args = {'path': str(backup_folder)}
@@ -39,5 +39,5 @@ def test_generate_dry_run_backup_cmd(output_folder):
     assert_that(result).is_length(4)
     assert_that(result[0]).is_equal_to('tar')
     assert_that(result[1]).is_equal_to('--verbose')
-    assert_that(result[2]).is_equal_to('-c')
+    assert_that(result[2]).is_equal_to('--create')
     assert_that(result[3]).ends_with('tests/ut/../testFolder')
