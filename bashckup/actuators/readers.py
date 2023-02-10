@@ -105,13 +105,15 @@ class FileReader(AbstractReader):
 
         # Search if an incremental file already exists
         incremental_file_exists = False
-        with os.scandir(self._output_directory) as it:
-            entry: os.DirEntry
-            for entry in it:
-                if entry.name.endswith(file_name):
-                    file_name = entry.name
-                    incremental_file_exists = True
-                    break
+        # Folder can be absent only in dry mode
+        if not self._dry_run and Path(self._output_directory).is_dir():
+            with os.scandir(self._output_directory) as it:
+                entry: os.DirEntry
+                for entry in it:
+                    if entry.name.endswith(file_name):
+                        file_name = entry.name
+                        incremental_file_exists = True
+                        break
         # If incremental file does not exist then create a file with the prefix
         if not incremental_file_exists:
             file_name = self._file_prefix + file_name
@@ -150,8 +152,8 @@ class FileReader(AbstractReader):
         return cmd
 
     # Override because we need to back up files before the restoration
-    def generate_restore_process(self, stdin: IO[AnyStr] = None,
-                                 stdout: IO[AnyStr] = subprocess.PIPE) -> subprocess.Popen:
+    def generate_restore_process(self, stdin: IO[AnyStr] = subprocess.PIPE,
+                                 stdout: IO[AnyStr] = None) -> subprocess.Popen:
         # Back up src files before restoration
         src_path = Path(self.path)
         backup_path = src_path.parents[0] / (src_path.name + '-bck')

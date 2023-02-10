@@ -272,6 +272,80 @@ def run_backup_plans(global_parameters: dict, backup_plans: dict) -> bool:
     return error
 
 
+def run_restoration_plans(global_parameters: dict, backup_plans: dict) -> bool:
+    """
+    :returns: True if no errors appear during the restoration, otherwise False.
+    """
+    error = False
+    for (backup_id, backup_plan) in backup_plans.items():
+        try:
+            logging.info('=== Restoration backup %s ===', backup_id)
+
+            #
+            # Post backup
+            #
+            if backup_plan['modules'].get('post-backup') is not None:
+                logging.info('== Post backup ==')
+                for post_backup in backup_plan['modules']['post-backup'].reverse():
+                    logging.info('= Run post backup %s =', post_backup.module_name())
+                    # TODO manage return code and errors
+                    post_backup.run_restore()
+
+            #
+            # Backup
+            #
+            if global_parameters['dry-run'] is False:
+                processes = []  # Store all processes to be able to retrieve errors
+                try:
+                    logging.info('= Run writer %s =', backup_plan['modules']['writer'].module_name())
+                    processes.append(backup_plan['modules']['writer'].generate_restore_process())
+
+                    if backup_plan['modules'].get('transformers') is not None:
+                        for transformer in backup_plan['modules']['transformers'].reverse():
+                            logging.info('= Run transformer %s =', transformer.module_name())
+                            previous_process = processes[-1]
+                            processes.append(transformer.generate_restore_process(previous_process.stdout))
+                            previous_process.stdout.close()  # Allow previous process to receive a SIGPIPE
+
+                    previous_process = processes[-1]
+                    logging.info('= Run reader %s =', backup_plan['modules']['reader'].module_name())
+                    processes.append(backup_plan['modules']['reader'].generate_backup_process(previous_process.stdout))
+                    previous_process.stdout.close()  # Allow previous process to receive a SIGPIPE
+
+                finally:
+                    for process in processes:
+                        return_code = process.wait()
+                        if return_code != 0:
+                            error = True
+                            logging.error('ERROR: Error during execution of backup\n'
+                                          f'Command output: {process.stderr.read().decode(sys.getdefaultencoding())}\n'
+                                          f'''Command executed: {' '.join(process.args)}'''
+                                          f'Error code: {return_code}')
+                        else:
+                            stderr = process.stderr.read().decode(sys.getdefaultencoding())
+                            if stderr != '':
+                                logging.debug(stderr)
+                        if process.stderr is not None:
+                            process.stderr.close()
+                        if process.stdout is not None:
+                            process.stdout.close()
+            else:  # Dry run
+                cmd = []
+                cmd.extend(backup_plan['modules']['writer'].generate_dry_run_restore_cmd())
+                if backup_plan['modules'].get('transformers') is not None:
+                    for transformer in backup_plan['modules']['transformers'].reverse():
+                        cmd.append('|')
+                        cmd.extend(transformer.generate_dry_run_restore_cmd())
+                cmd.append('|')
+                cmd.extend(backup_plan['modules']['reader'].generate_dry_run_restore_cmd())
+
+                logging.info(f'''Command [{' '.join(cmd)}] would have been ran.''')
+        except (UserException, RunningException) as e:
+            error = True
+            logging.error(str(e))
+    return error
+
+
 def extract_cli_parameters(args):
     args_parser = argparse.ArgumentParser(prog='Backuper', description='Command line interface to backup everything!')
     args_parser.add_argument('--dry-run', action='store_true',
@@ -354,7 +428,10 @@ def main(args=None):
 
         backup_plans = prepare(global_parameters, configurations)
 
-        have_error = run_backup_plans(global_parameters, backup_plans)
+        if global_parameters['backup']:
+            have_error = run_backup_plans(global_parameters, backup_plans)
+        else:
+            have_error = run_restoration_plans(global_parameters, backup_plans)
         if have_error is True:
             exit(1)
         return 0
