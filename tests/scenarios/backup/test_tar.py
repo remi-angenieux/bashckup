@@ -18,7 +18,7 @@ locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 @freeze_time('2023-07-10 15:02:10')
 def test_tar(backup_folder, server_data_folder):
     """
-    Goal: Test tar without differential options
+    Goal: Test tar without incremental options
     """
     # Given
     config_file = conf_path / 'tar.yml'
@@ -38,9 +38,9 @@ def test_tar(backup_folder, server_data_folder):
 
 
 @freeze_time('2023-07-10 15:02:10')
-def test_differential_tar(backup_folder, server_data_folder):
+def test_incremental_tar(backup_folder, server_data_folder):
     """
-    GOAL: Test TAR with differential options, first backup
+    GOAL: Test TAR with incremental options, first backup
     """
     # Given
     config_file = conf_path / 'tar-diff.yml'
@@ -67,9 +67,9 @@ def test_differential_tar(backup_folder, server_data_folder):
 
 
 @freeze_time('2023-07-10 15:02:10')
-def test_differential_tar_incremental_backup(backup_folder, server_data_folder):
+def test_incremental_tar_incremental_backup(backup_folder, server_data_folder):
     """
-    GOAL: Test TAR with differential options, incremental backup. File 2 is not present in initial archive
+    GOAL: Test TAR with incremental options, incremental backup. File 2 is not present in initial archive
     """
     # Given
     config_file = conf_path / 'tar-diff.yml'

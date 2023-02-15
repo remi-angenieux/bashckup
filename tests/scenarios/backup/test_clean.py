@@ -46,9 +46,9 @@ def test_tar_clean(backup_folder, server_data_folder):
 
 
 @freeze_time('2023-07-09 15:02:10')
-def test_tar_diff_clean_retention_less_than_level0_frequency(caplog, backup_folder, server_data_folder):
+def test_tar_incremental_clean_retention_less_than_level0_frequency(caplog, backup_folder, server_data_folder):
     """
-    Goal: Test clean folder with a retention for 'cleanFolder' lower than the differential backup interval of tar
+    Goal: Test clean folder with a retention for 'cleanFolder' lower than the incremental backup interval of tar
     3th of July is the first day of the current week
     """
     caplog.set_level(logging.WARNING)

@@ -97,15 +97,15 @@ def test_restore_tar_backup_folder_not_empty(backup_folder):
 
 
 @freeze_time('2023-07-10 15:02:10')
-def test_restore_differential_tar_incremental_backup(backup_folder):
+def test_restore_incremental_tar_incremental_backup(backup_folder):
     """
-    GOAL: Test restore a differential backup with an increment
+    GOAL: Test restore a incremental backup with an increment
     """
     # Given
     config_file = conf_path / 'tar-diff.yml'
     expected_backup_folder = backup_folder / 'tar-diff'
     try:
-        shutil.copytree(files_path / 'differential', expected_backup_folder)
+        shutil.copytree(files_path / 'incremental', expected_backup_folder)
         os.makedirs(server_data_folder)
 
         # When
