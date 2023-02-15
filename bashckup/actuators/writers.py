@@ -27,7 +27,7 @@ class AbstractWriter(CommandActuator, ABC):
 
     def generate_restore_process(self, stdin: IO[AnyStr] = None, stdout: IO[AnyStr] = subprocess.PIPE) \
             -> subprocess.Popen:
-        return super().generate_backup_process(stdin, stdout)
+        return super().generate_restore_process(stdin, stdout)
 
 
 class FileWriter(AbstractWriter):
@@ -80,7 +80,7 @@ class FileWriter(AbstractWriter):
         if self._dry_run is False:
             logging.info('Folder [%s] created', str(self._output_folder))
             os.makedirs(self._output_folder, exist_ok=True, mode=0o750)
-        else:
+        elif not os.path.exists(self._output_folder):
             logging.info('Folder [%s] would have been created.', self._output_folder)
         if self._isBackup:
             self._backup_datetime = datetime.today()

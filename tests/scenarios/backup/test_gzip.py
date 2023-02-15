@@ -20,20 +20,20 @@ Depends on TAR and MARIADB tests
 
 
 @freeze_time('2023-07-10 15:02:10')
-def test_mariadb_gz(output_folder):
+def test_mariadb_gz(backup_folder, server_data_folder):
     """
     GOAL: Test GZIP with default options (no args)
     """
     # Given
     config_file = conf_path / 'mariadb-gz.yml'
-    expected_output_folder = output_folder / 'mariadb-gz'
+    expected_backup_folder = backup_folder / 'mariadb-gz'
     # When
     return_code = main(['backup', 'file', '--config-file', str(config_file)])
 
     # Then
     assert_that(return_code).is_equal_to(0)
     output = []
-    with os.scandir(expected_output_folder) as it:
+    with os.scandir(expected_backup_folder) as it:
         entry: os.DirEntry
         for entry in it:
             output.append({'file-name': entry.name, 'size': entry.stat().st_size})
@@ -45,20 +45,20 @@ def test_mariadb_gz(output_folder):
 
 
 @freeze_time('2023-07-10 15:02:10')
-def test_tar_gz(output_folder):
+def test_tar_gz(backup_folder, server_data_folder):
     """
     GOAL: Test GZIP with custom option (level set to 9)
     """
     # Given
     config_file = conf_path / 'tar-gz.yml'
-    expected_output_folder = output_folder / 'tar-gz'
+    expected_backup_folder = backup_folder / 'tar-gz'
     # When
     return_code = main(['backup', 'file', '--config-file', str(config_file)])
 
     # Then
     assert_that(return_code).is_equal_to(0)
     output = []
-    with os.scandir(expected_output_folder) as it:
+    with os.scandir(expected_backup_folder) as it:
         entry: os.DirEntry
         for entry in it:
             output.append({'file-name': entry.name, 'size': entry.stat().st_size})

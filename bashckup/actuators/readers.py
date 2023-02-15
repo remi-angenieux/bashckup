@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 from abc import ABC
 from datetime import datetime
@@ -147,7 +148,8 @@ class FileReader(AbstractReader):
             cmd.append('--verbose')
         if self.incrementalMetadataFilePrefix is not None:
             cmd.extend(['--listed-incremental', str(self._generate_incremental_metadata_file_name())])
-        cmd.extend(['--extract', self.path])
+        cmd.extend(
+            ['--extract', '--same-owner', '--same-permissions', '--strip-components=1', '--directory', self.path])
 
         return cmd
 
@@ -156,9 +158,16 @@ class FileReader(AbstractReader):
                                  stdout: IO[AnyStr] = None) -> subprocess.Popen:
         # Back up src files before restoration
         src_path = Path(self.path)
-        backup_path = src_path.parents[0] / (src_path.name + '-bck')
-        os.rename(src_path, backup_path)
-        return super().generate_backup_process(stdin, stdout)
+        files = os.listdir(src_path)
+        if len(files) != 0:  # Not Empty
+            backup_path = src_path.parents[0] / (
+                    src_path.name + '-bck-' + datetime.today().isoformat(timespec='seconds'))
+
+            metadata = os.stat(src_path)
+            os.mkdir(backup_path, metadata.st_mode)
+            for file in files:
+                shutil.move(os.path.join(src_path, file), backup_path)
+        return super().generate_restore_process(stdin, stdout)
 
 
 class MariaDBReader(AbstractReader):

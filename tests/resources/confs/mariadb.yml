@@ -8,5 +8,5 @@
   writer:
     module: outputFile
     args:
-      path: output/mariadb/
+      path: backup/mariadb/
       file-name: mariadb.sql

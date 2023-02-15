@@ -4,7 +4,7 @@
   reader:
     module: files
     args:
-      path: resources/testFolder/
+      path: serverData/
   transformers:
     - gzip:
         args:
@@ -12,5 +12,5 @@
   writer:
     module: outputFile
     args:
-      path: output/tar-gz/
+      path: backup/tar-gz/
       file-name: tar-gz.tar.gz

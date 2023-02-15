@@ -4,9 +4,9 @@
   reader:
     module: files
     args:
-      path: resources/testFolder/
+      path: serverData/
   writer:
     module: outputFile
     args:
-      path: output/tar/
+      path: backup/tar/
       file-name: tar.tar

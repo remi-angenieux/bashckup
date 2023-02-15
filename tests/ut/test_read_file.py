@@ -1,9 +1,6 @@
 import locale
 import os
-import shutil
 
-import pytest
-from _pytest.fixtures import fixture
 from assertpy import assert_that
 from pathlib import Path
 
@@ -20,15 +17,13 @@ Change working directory to test folder
 """
 
 
-def test_generate_dry_run_backup_cmd(output_folder):
+def test_generate_dry_run_backup_cmd(backup_folder, server_data_folder):
     # Given
     global_context = {'backup-id': 'test', 'dry-run': True, 'verbose': True, 'backup': True}
-    backup_folder = tests_path / 'testFolder'
-    output_folder = tests_path / 'output'
-    args = {'path': str(backup_folder)}
+    args = {'path': str(server_data_folder)}
     metadata = {}
     reader_module = FileReader(global_context, args, metadata)
-    writer_module = FileWriter(global_context, {'file-name': 'test', 'path': str(output_folder)}, metadata)
+    writer_module = FileWriter(global_context, {'file-name': 'test', 'path': str(backup_folder)}, metadata)
 
     # When
     metadata.update(reader_module.prepare_module())

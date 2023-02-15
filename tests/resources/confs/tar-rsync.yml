@@ -4,11 +4,11 @@
   reader:
     module: files
     args:
-      path: resources/testFolder/
+      path: serverData/
   writer:
     module: outputFile
     args:
-      path: output/tar-rsync/
+      path: backup/tar-rsync/
       file-name: tar-rsync.tar
   post-backup:
     - rsync:

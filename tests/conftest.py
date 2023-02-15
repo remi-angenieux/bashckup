@@ -13,19 +13,21 @@ def change_test_dir(monkeypatch):
     monkeypatch.chdir(tests_path)
 
 
-@fixture(autouse=True)
-def output_folder():
+@fixture
+def backup_folder():
     """ Create and remove a folder """
-    output_path = tests_path / 'output'
-    os.makedirs(output_path, exist_ok=True)
-    yield output_path
+    backup_path = tests_path / 'backup'
+    os.makedirs(backup_path, exist_ok=True)
+    yield backup_path
     # Clear output folder
-    for filename in os.listdir(output_path):
-        file_path = os.path.join(output_path, filename)
-        try:
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-        except Exception as e:
-            print('Failed to delete %s. Reason: %s' % (file_path, e))
+    shutil.rmtree(backup_path)
+
+
+@fixture
+def server_data_folder():
+    """ Copy resources/testFolder to server_data_folder then remove it """
+    server_data_path = tests_path / 'serverData'
+    shutil.copytree(tests_path / 'resources' / 'testFolder', server_data_path)
+    yield server_data_path
+    # Clear output folder
+    shutil.rmtree(server_data_path)

@@ -309,7 +309,7 @@ def run_restoration_plans(global_parameters: dict, backup_plans: dict) -> bool:
 
                     previous_process = processes[-1]
                     logging.info('= Run reader %s =', backup_plan['modules']['reader'].module_name())
-                    processes.append(backup_plan['modules']['reader'].generate_backup_process(previous_process.stdout))
+                    processes.append(backup_plan['modules']['reader'].generate_restore_process(previous_process.stdout))
                     previous_process.stdout.close()  # Allow previous process to receive a SIGPIPE
 
                 finally:

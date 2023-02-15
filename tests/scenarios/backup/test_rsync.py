@@ -33,7 +33,7 @@ def change_user1_password_file_rights():
 
 
 @freeze_time('2023-07-10 15:02:10')
-def test_tar_rsync_password_readable_for_everyone(caplog, output_folder):
+def test_tar_rsync_password_readable_for_everyone(caplog, backup_folder, server_data_folder):
     """
     Goal: Test file permission check on password file
     """
@@ -55,13 +55,13 @@ def test_tar_rsync_password_readable_for_everyone(caplog, output_folder):
 
 
 @freeze_time('2023-07-10 15:02:10')
-def test_tar_rsync(change_user1_password_file_rights, output_folder):
+def test_tar_rsync(change_user1_password_file_rights, backup_folder, server_data_folder):
     """
     Goal: Test RSYNC
     """
     # Given
     config_file = conf_path / 'tar-rsync.yml'
-    expected_output_folder = output_folder / 'tar-rsync'
+    expected_backup_folder = backup_folder / 'tar-rsync'
     # When
     return_code = main(['backup', 'file', '--config-file', str(config_file)])
 
@@ -70,7 +70,7 @@ def test_tar_rsync(change_user1_password_file_rights, output_folder):
 
     # Check on client side
     output = []
-    with os.scandir(expected_output_folder) as it:
+    with os.scandir(expected_backup_folder) as it:
         entry: os.DirEntry
         for entry in it:
             output.append({'file-name': entry.name, 'size': entry.stat().st_size})

@@ -18,7 +18,7 @@ locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 # FIXME this test has to be rewritten
 @freeze_time('2023-07-10 15:02:10')
-def test_tar_gz_verbose(caplog, output_folder):
+def test_tar_gz_verbose(caplog, backup_folder, server_data_folder):
     """
     GOAL: Test verbose mode (it has to be tested on every reader and post-backup)
     """
@@ -35,7 +35,7 @@ def test_tar_gz_verbose(caplog, output_folder):
 
 # FIXME this test has to be rewritten
 @freeze_time('2023-07-10 15:02:10')
-def test_tar_gz_quiet(caplog, output_folder):
+def test_tar_gz_quiet(caplog, backup_folder, server_data_folder):
     """
     GOAL: Test quiet mode
     """

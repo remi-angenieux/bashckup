@@ -17,25 +17,25 @@ locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 
 @freeze_time('2023-07-09 15:02:10')
-def test_tar_clean(output_folder):
+def test_tar_clean(backup_folder, server_data_folder):
     """
     Goal: Test clean folder, file older than 2 days has to be removed
     """
     # Given
     config_file = conf_path / 'tar-clean.yml'
-    expected_output_folder = output_folder / 'tar-clean'
-    generate_file(expected_output_folder, '2023-07-08T15:02:10-tar.tar')  # Expected to be kept (Diff 1 day)
-    generate_file(expected_output_folder,
+    expected_backup_folder = backup_folder / 'tar-clean'
+    generate_file(expected_backup_folder, '2023-07-08T15:02:10-tar.tar')  # Expected to be kept (Diff 1 day)
+    generate_file(expected_backup_folder,
                   '2023-07-08T15:02:11-tar.tar')  # Expected to be kept, less than 2 days (2 days minus 1 s)
-    generate_file(expected_output_folder, '2023-07-07T15:02:10-tar.tar')  # Expected to be removed exactly 2 days
-    generate_file(expected_output_folder, '2023-07-06T15:02:10-tar.tar')  # Expected to be removed, older than 3 days
+    generate_file(expected_backup_folder, '2023-07-07T15:02:10-tar.tar')  # Expected to be removed exactly 2 days
+    generate_file(expected_backup_folder, '2023-07-06T15:02:10-tar.tar')  # Expected to be removed, older than 3 days
     # When
     return_code = main(['backup', 'file', '--config-file', str(config_file)])
 
     # Then
     assert_that(return_code).is_equal_to(0)
     output = []
-    with os.scandir(expected_output_folder) as it:
+    with os.scandir(expected_backup_folder) as it:
         entry: os.DirEntry
         for entry in it:
             output.append({'file-name': entry.name, 'size': entry.stat().st_size})
@@ -46,7 +46,7 @@ def test_tar_clean(output_folder):
 
 
 @freeze_time('2023-07-09 15:02:10')
-def test_tar_diff_clean_retention_less_than_level0_frequency(caplog, output_folder):
+def test_tar_diff_clean_retention_less_than_level0_frequency(caplog, backup_folder, server_data_folder):
     """
     Goal: Test clean folder with a retention for 'cleanFolder' lower than the differential backup interval of tar
     3th of July is the first day of the current week
@@ -54,19 +54,19 @@ def test_tar_diff_clean_retention_less_than_level0_frequency(caplog, output_fold
     caplog.set_level(logging.WARNING)
     # Given
     config_file = conf_path / 'tar-diff-clean.yml'
-    expected_output_folder = output_folder / 'tar-diff-clean'
-    generate_file(expected_output_folder, '2023-07-08T15:02:10-tar.tar')  # Expected to be kept (Diff 1 day)
-    generate_file(expected_output_folder,
+    expected_backup_folder = backup_folder / 'tar-diff-clean'
+    generate_file(expected_backup_folder, '2023-07-08T15:02:10-tar.tar')  # Expected to be kept (Diff 1 day)
+    generate_file(expected_backup_folder,
                   '2023-07-07T15:02:11-tar.tar')  # Expected to be kept, less than 2 days (2 days minus 1 s)
-    generate_file(expected_output_folder, '2023-07-07T15:02:10-tar.tar')  # Expected to be kept, because retention will be set to 7
-    generate_file(expected_output_folder, '2023-07-06T15:02:10-tar.tar')  # Expected to be kept, because retention will be set to 7
+    generate_file(expected_backup_folder, '2023-07-07T15:02:10-tar.tar')  # Expected to be kept, because retention will be set to 7
+    generate_file(expected_backup_folder, '2023-07-06T15:02:10-tar.tar')  # Expected to be kept, because retention will be set to 7
     # When
     return_code = main(['backup', 'file', '--config-file', str(config_file)])
 
     # Then
     assert_that(return_code).is_equal_to(0)
     output = []
-    with os.scandir(expected_output_folder) as it:
+    with os.scandir(expected_backup_folder) as it:
         entry: os.DirEntry
         for entry in it:
             output.append({'file-name': entry.name})
@@ -83,8 +83,8 @@ def test_tar_diff_clean_retention_less_than_level0_frequency(caplog, output_fold
                                   'Retention value is override by the minimum'))
 
 
-def generate_file(expected_output_folder, file_name):
-    if not os.path.isdir(expected_output_folder):
-        os.makedirs(expected_output_folder)
-    with open(expected_output_folder / file_name, 'w') as f:
+def generate_file(expected_backup_folder, file_name):
+    if not os.path.isdir(expected_backup_folder):
+        os.makedirs(expected_backup_folder)
+    with open(expected_backup_folder / file_name, 'w') as f:
         f.write('content')

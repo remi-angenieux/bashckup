@@ -10,5 +10,5 @@
   writer:
     module: outputFile
     args:
-      path: output/mariadb-gz/
+      path: backup/mariadb-gz/
       file-name: mariadb-gz.sql.gz

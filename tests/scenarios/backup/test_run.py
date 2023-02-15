@@ -17,7 +17,7 @@ Run application from CLI to to do end to end test
 """
 
 
-def test_cli_process(output_folder):
+def test_cli_process(backup_folder, server_data_folder):
     """
     GOAL: Test application launch as a CLI process
     Based on tar test

@@ -4,7 +4,7 @@
   reader:
     module: files
     args:
-      path: resources/testFolder/
+      path: serverData/
   transformers:
     - crypt:
         args:
@@ -12,5 +12,5 @@
   writer:
     module: outputFile
     args:
-      path: output/tar-crypt/
+      path: backup/tar-crypt/
       file-name: tar-crypt.tar.crypt
