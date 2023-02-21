@@ -2,13 +2,13 @@
 - name: Tar diff
   id: tar-diff
   reader:
-    module: files
-    args:
-      path: serverData/
-      incremental-metadata-file-prefix: tar-snap
-      level-0-frequency: 'weekly'
+    files:
+      args:
+        path: serverData/
+        incremental-metadata-file-prefix: tar-snap
+        level-0-frequency: 'weekly'
   writer:
-    module: outputFile
-    args:
-      path: backup/tar-diff/
-      file-name: tar-diff.tar
+    outputFile:
+      args:
+        path: backup/tar-diff/
+        file-name: tar-diff.tar

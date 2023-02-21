@@ -2,15 +2,15 @@
 - name: Tar gzip
   id: tar-gz
   reader:
-    module: files
-    args:
-      path: serverData/
+    files:
+      args:
+        path: serverData/
   transformers:
     - gzip:
         args:
           level: 9
   writer:
-    module: outputFile
-    args:
-      path: backup/tar-gz/
-      file-name: tar-gz.tar.gz
+    outputFile:
+      args:
+        path: backup/tar-gz/
+        file-name: tar-gz.tar.gz

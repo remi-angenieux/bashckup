@@ -2,14 +2,14 @@
 - name: Tar
   id: tar
   reader:
-    module: files
-    args:
-      path: serverData/
+    files:
+      args:
+        path: serverData/
   writer:
-    module: outputFile
-    args:
-      path: backup/tar-rsync/
-      file-name: tar-rsync.tar
+    outputFile:
+      args:
+        path: backup/tar-rsync/
+        file-name: tar-rsync.tar
   post-backup:
     - rsync:
         args:

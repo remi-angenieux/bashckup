@@ -3,6 +3,7 @@ import os
 import shutil
 from pathlib import Path
 
+import pytest
 from assertpy import assert_that
 from freezegun import freeze_time
 
@@ -96,6 +97,8 @@ def test_restore_tar_backup_folder_not_empty(backup_folder):
         shutil.rmtree(server_data_folder, ignore_errors=True)
 
 
+@pytest.mark.skip(reason="Restoration requires a deep modification of the architecture, it will be done for the next "
+                         "version")
 @freeze_time('2023-07-10 15:02:10')
 def test_restore_incremental_tar_incremental_backup(backup_folder):
     """

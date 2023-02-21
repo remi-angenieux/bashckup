@@ -36,11 +36,13 @@ class ActuatorFactory:
 
     def build_reader(self, global_context: dict, config: dict,
                      metadata: Dict[str, Dict[str, ActuatorMetadata]]) -> AbstractReader:
-        module_class_name = self._reader.get(config['module'])
+        module_name = next(iter(config))
+        module_class_name = self._reader.get(module_name)
+        args = config[module_name]['args']
         if module_class_name is None:
-            raise ValueError(f'''Module {config['module']} is not managed''')
+            raise ValueError(f'''Module {module_name} is not managed''')
         else:
-            return globals()[module_class_name](global_context, config['args'], metadata)
+            return globals()[module_class_name](global_context, args, metadata)
 
     def build_transformer(self, global_context: dict, config: dict or str,
                           metadata: Dict[str, Dict[str, ActuatorMetadata]]) -> AbstractTransformer:
@@ -60,11 +62,13 @@ class ActuatorFactory:
 
     def build_writer(self, global_context: dict, config: dict,
                      metadata: Dict[str, Dict[str, ActuatorMetadata]]) -> AbstractWriter:
-        module_class_name = self._writer.get(config['module'])
+        module_name = next(iter(config))
+        module_class_name = self._writer.get(module_name)
+        args = config[module_name]['args']
         if module_class_name is None:
-            raise ValueError(f'''Module {config['module']} is not managed''')
+            raise ValueError(f'''Module {module_name} is not managed''')
         else:
-            return globals()[module_class_name](global_context, config['args'], metadata)
+            return globals()[module_class_name](global_context, args, metadata)
 
     def build_post_backup(self, global_context: dict, config: dict or str,
                           metadata: Dict[str, Dict[str, ActuatorMetadata]]) -> AbstractPostBackup:

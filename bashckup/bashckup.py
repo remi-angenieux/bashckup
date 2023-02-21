@@ -26,13 +26,16 @@ items:
       pattern: '[a-zA-Z0-9]+'
     reader:
       type: object
-      properties:
-        module:
-          type: string
-        args:
+      minProperties: 1
+      maxProperties: 1
+      patternProperties:
+        '.*':
           type: object
-      required:
-        - module
+          properties:
+            args:
+              type: object
+              additionalProperties: true
+          additionalProperties: false
       additionalProperties: false
     transformers:
       type: array
@@ -53,13 +56,16 @@ items:
         additionalProperties: false
     writer:
       type: object
-      properties:
-        module:
-          type: string
-        args:
+      minProperties: 1
+      maxProperties: 1
+      patternProperties:
+        '.*':
           type: object
-      required:
-        - module
+          properties:
+            args:
+              type: object
+              additionalProperties: true
+          additionalProperties: false
       additionalProperties: false
     post-backup:
       type: array

@@ -2,11 +2,11 @@
 - name: Tar
   id: tar
   reader:
-    module: files
-    args:
-      path: serverData/
+    files:
+      args:
+        path: serverData/
   writer:
-    module: outputFile
-    args:
-      path: backup/tar/
-      file-name: tar.tar
+    outputFile:
+      args:
+        path: backup/tar/
+        file-name: tar.tar

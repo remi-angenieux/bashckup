@@ -2,16 +2,16 @@
 - name: Tar diff clean
   id: tar-diff-clean
   reader:
-    module: files
-    args:
-      path: serverData/
-      incremental-metadata-file-prefix: tar-snap
-      level-0-frequency: 'weekly'
+    files:
+      args:
+        path: serverData/
+        incremental-metadata-file-prefix: tar-snap
+        level-0-frequency: 'weekly'
   writer:
-    module: outputFile
-    args:
-      path: backup/tar-diff-clean/
-      file-name: tar-diff-clean.tar
+    outputFile:
+      args:
+        path: backup/tar-diff-clean/
+        file-name: tar-diff-clean.tar
   post-backup:
     - cleanFolder:
         args:

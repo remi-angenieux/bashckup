@@ -32,36 +32,36 @@ Config file:
 - name: Backup MariaDB database
   id: backup-maria-db2
   reader:
-    module: mariaDBDatabase
-    args:
-      database-name: "myDatabase"
+    mariaDBDatabase:
+      args:
+        database-name: "myDatabase"
   transformers:
     - gzip
     - crypt:
         args:
           password-file: password-safe.txt
   writer:
-    module: outputFile
-    args:
-      path: ./
-      file-name: output.sql.gz
+    outputFile:
+      args:
+        path: ./
+        file-name: output.sql.gz
 - name: Backup website folder
   id: backup-website
   reader:
-    module: files
-    args:
-      path: backupFolder/
-      incremental-metadata-file-prefix: tar-snap
-      level-0-frequency: 'weekly'
+    files:
+      args:
+        path: backupFolder/
+        incremental-metadata-file-prefix: tar-snap
+        level-0-frequency: 'weekly'
   transformers:
     - gzip:
         args:
           level: 9
   writer:
-    module: outputFile
-    args:
-      path: ./
-      file-name: backup.tar.gz
+    outputFile:
+      args:
+        path: ./
+        file-name: backup.tar.gz
   post-backup:
     - rsync:
         args:
@@ -126,6 +126,7 @@ Use `tar` bash command and allows to save files from file systems
 | level-0-frequency                | When a full backup have to be done ? You have to choose in ['weekly', 'monthly'] | False    | weekly        |
 
 #### Restoration
+⚠️**If you make a differential backup, the restoration cannot yet be done by bashckup**⚠️
 It renames the name of the folder defined by 'path' (adds '-bck') to keep the files present on the server.
 If the restoration fails you can go back by removing the '-bck' added to the folder name
 

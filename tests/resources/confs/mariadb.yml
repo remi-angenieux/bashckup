@@ -2,11 +2,11 @@
 - name: mariaDB
   id: mariadb
   reader:
-    module: mariaDBDatabase
-    args:
-      database-name: test
+    mariaDBDatabase:
+      args:
+        database-name: test
   writer:
-    module: outputFile
-    args:
-      path: backup/mariadb/
-      file-name: mariadb.sql
+    outputFile:
+      args:
+        path: backup/mariadb/
+        file-name: mariadb.sql

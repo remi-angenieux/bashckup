@@ -2,15 +2,15 @@
 - name: Tar crypt
   id: tar-crypt
   reader:
-    module: files
-    args:
-      path: serverData/
+    files:
+      args:
+        path: serverData/
   transformers:
     - crypt:
         args:
           password-file: resources/confs/crypt-password.pwd
   writer:
-    module: outputFile
-    args:
-      path: backup/tar-crypt/
-      file-name: tar-crypt.tar.crypt
+    outputFile:
+      args:
+        path: backup/tar-crypt/
+        file-name: tar-crypt.tar.crypt
