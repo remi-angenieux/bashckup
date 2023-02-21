@@ -107,7 +107,8 @@ class CommandActuator(AbstractActuator):
             raise Exception('You are not allowed to call this function outside dry-run')
         return self._generate_restore_cmd()
 
-    def generate_restore_process(self, stdin: IO[AnyStr], stdout: IO[AnyStr]) -> subprocess.Popen:
+    def generate_restore_process(self, stdin: IO[AnyStr],
+                                 stdout: IO[AnyStr] = None) -> subprocess.Popen:
         if self._dry_run is True:
             raise Exception('You are not allowed to call this function in dry-run')
         return subprocess.Popen(self._generate_restore_cmd(), shell=False, stdin=stdin, stdout=stdout,

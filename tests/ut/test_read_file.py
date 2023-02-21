@@ -35,4 +35,4 @@ def test_generate_dry_run_backup_cmd(backup_folder, server_data_folder):
     assert_that(result[0]).is_equal_to('tar')
     assert_that(result[1]).is_equal_to('--verbose')
     assert_that(result[2]).is_equal_to('--create')
-    assert_that(result[3]).ends_with('tests/ut/../testFolder')
+    assert_that(result[3]).ends_with('tests/serverData')

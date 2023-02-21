@@ -4,3 +4,5 @@
   - Test error cases
 - Focus on error messages
 - Develop 'restore'
+  - Change the architecture to allow restoration of incremental backups
+- Allow to make backup without using disk space on the source machine

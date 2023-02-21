@@ -44,13 +44,3 @@ def test_mariadb(backup_folder):
                                                                                               '')
     expected = (tests_path / 'resources' / 'mariadb' / 'sqlDump.sql').read_text().replace('COLLATE utf8mb4_bin ', '')
     assert_that(actual).contains(expected)
-
-    # FIXME Use it for restore
-    # Remove 'comments'
-    regex = r"/\*![0-9]{5} ?(?:[^*]*)\*/(?:;)?\n?"
-    process = subprocess.run(['mysqldump', '--compact', '--skip-extended-insert', 'test'], capture_output=True,
-                             shell=False, text=True)
-    sql_dump = re.sub(regex, '', process.stdout, 0, re.MULTILINE)
-    expected = (tests_path / '..' / '.github' / 'images' / 'database.sql').read_text().replace('COLLATE utf8mb4_bin ',
-                                                                                               '')
-    assert_that(sql_dump.replace('COLLATE utf8mb4_bin ', '')).is_equal_to(expected)
