@@ -45,6 +45,7 @@ class ParameterException(ModuleException):
         self.parameter = parameter
 
     def __str__(self):
-        return f'ERROR: On the [{self.module}] module\n' \
+        return f'ERROR: On the [{self.backup_id}] backup\n' \
+               f'On the [{self.module}] module\n' \
                f'Validation error on parameter: {self.parameter}\n' \
                f'Reason: {self.message}'

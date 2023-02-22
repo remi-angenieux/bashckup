@@ -6,3 +6,5 @@
 - Develop 'restore'
   - Change the architecture to allow restoration of incremental backups
 - Allow to make backup without using disk space on the source machine
+- Add asynchronous encryption
+- Choose what you want to restore in interactive mode

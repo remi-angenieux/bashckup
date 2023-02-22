@@ -10,7 +10,7 @@ from typing import IO, AnyStr, Any
 from jsonschema.validators import validate
 
 from bashckup.actuators.actuators import CommandActuator
-from bashckup.actuators.exceptions import ParameterException
+from bashckup.actuators.exceptions import ParameterException, ModuleException
 
 datetimeOutputFileRegex = re.compile(r'^(\d+-\d+-\d+T\d+:\d+:\d+)')
 outputFileRegex = re.compile(r'^(\d+-\d+-\d+T\d+:\d+:\d+)-(.*)')
@@ -72,8 +72,13 @@ class FileWriter(AbstractWriter):
 
     # Override because this module have a special way to managed process
     def generate_backup_process(self, stdin: IO[AnyStr], stdout: IO[AnyStr] = None) -> subprocess.Popen:
-        with open(self._output_file_path, 'w') as f:
-            return super().generate_backup_process(stdin, f)
+        try:
+            file_descriptor = os.open(self._output_file_path, flags=os.O_WRONLY | os.O_CREAT | os.O_EXCL, mode=0o600)
+            with open(file_descriptor, 'w') as f:
+                return super().generate_backup_process(stdin, f)
+        except FileExistsError:
+            raise ModuleException(f'File [{self._output_file_path}] already exists', self._backup_id,
+                                  self.module_name())
 
     def _pre_run_tasks(self) -> None:
         #  Create backup folder

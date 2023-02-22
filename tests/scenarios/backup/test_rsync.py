@@ -1,7 +1,6 @@
 import locale
 import logging
 import os
-import shutil
 from pathlib import Path
 
 import pytest
@@ -16,6 +15,10 @@ tests_path = current_path / '..' / '..'
 conf_path = tests_path / 'resources' / 'confs'
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
+
+"""
+Depends on TAR
+"""
 
 @fixture
 def change_user1_password_file_rights():
@@ -48,7 +51,8 @@ def test_tar_rsync_password_readable_for_everyone(caplog, backup_folder, server_
     assert e.type == SystemExit
     assert e.value.code == 1
     assert_that(caplog.record_tuples).contains(
-        ('root', logging.ERROR, 'ERROR: On the [rsync] module\n'
+        ('root', logging.ERROR, 'ERROR: On the [tar-rsync] backup\n'
+                                'On the [rsync] module\n'
                                 'Validation error on parameter: password-file\n'
                                 'Reason: password-file [resources/confs/user1.pwd] must not be readable from group '
                                 'and from others'))

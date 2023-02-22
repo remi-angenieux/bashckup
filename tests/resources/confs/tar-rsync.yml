@@ -1,6 +1,6 @@
 ---
-- name: Tar
-  id: tar
+- name: Tar Rsync
+  id: tar-rsync
   reader:
     files:
       args:

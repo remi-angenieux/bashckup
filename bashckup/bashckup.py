@@ -2,6 +2,7 @@ import argparse
 import ast
 import datetime
 import logging
+import os
 import sys
 import time
 
@@ -417,6 +418,8 @@ def configure_logging(parameters):
 
 
 def main(args=None):
+    # Default rights to prevent backups to be visible for everyone
+    os.umask(0o077)
     starting_time = time.time()
     try:
         parameters = extract_cli_parameters(args)

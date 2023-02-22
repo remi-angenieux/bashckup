@@ -15,6 +15,10 @@ tests_path = current_path / '..' / '..'
 conf_path = tests_path / 'resources' / 'confs'
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
+"""
+Depends on TAR
+"""
+
 
 @freeze_time('2023-07-09 15:02:10')
 def test_tar_clean(backup_folder, server_data_folder):
@@ -58,8 +62,10 @@ def test_tar_incremental_clean_retention_less_than_level0_frequency(caplog, back
     generate_file(expected_backup_folder, '2023-07-08T15:02:10-tar.tar')  # Expected to be kept (Diff 1 day)
     generate_file(expected_backup_folder,
                   '2023-07-07T15:02:11-tar.tar')  # Expected to be kept, less than 2 days (2 days minus 1 s)
-    generate_file(expected_backup_folder, '2023-07-07T15:02:10-tar.tar')  # Expected to be kept, because retention will be set to 7
-    generate_file(expected_backup_folder, '2023-07-06T15:02:10-tar.tar')  # Expected to be kept, because retention will be set to 7
+    generate_file(expected_backup_folder,
+                  '2023-07-07T15:02:10-tar.tar')  # Expected to be kept, because retention will be set to 7
+    generate_file(expected_backup_folder,
+                  '2023-07-06T15:02:10-tar.tar')  # Expected to be kept, because retention will be set to 7
     # When
     return_code = main(['backup', 'file', '--config-file', str(config_file)])
 

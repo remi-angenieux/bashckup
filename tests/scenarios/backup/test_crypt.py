@@ -52,7 +52,8 @@ def test_tar_crypt_password_readable_for_everyone(caplog, backup_folder, server_
     assert e.type == SystemExit
     assert e.value.code == 1
     assert_that(caplog.record_tuples).contains(
-        ('root', logging.ERROR, 'ERROR: On the [crypt] module\n'
+        ('root', logging.ERROR, 'ERROR: On the [tar-crypt] backup\n'
+                                'On the [crypt] module\n'
                                 'Validation error on parameter: password-file\n'
                                 'Reason: File [resources/confs/crypt-password.pwd] must not be readable from group '
                                 'and from others'))
