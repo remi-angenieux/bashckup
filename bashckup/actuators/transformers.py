@@ -80,10 +80,15 @@ class OpenSSLTransformer(AbstractTransformer):
         if not os.access(password_file, os.R_OK):
             raise ParameterException(f'''File [{self._args['password-file']}] is not readable''', 'password-file',
                                      self._backup_id, self.module_name())
-        if os.stat(password_file).st_mode & 0o77 != 0o0:
+        password_file_stat = os.stat(password_file)
+        if password_file_stat.st_mode & 0o077 != 0o0:
             raise ParameterException(f'''File [{self._args['password-file']}] must not be readable from group and '''
                                      'from others', 'password-file',
                                      self._backup_id, self.module_name())
+        if password_file_stat.st_uid != os.getuid():
+            raise ParameterException(
+                'File [' + self._args['password-file'] + '] is not owned by current user', 'password-file',
+                self._backup_id, self.module_name())
         self.password_file = password_file
 
     def _generate_backup_cmd(self) -> [str]:

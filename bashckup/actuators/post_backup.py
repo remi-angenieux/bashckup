@@ -47,7 +47,7 @@ class CleanFolderPostBackup(AbstractPostBackup):
         output_directories = [v.get('output-directory') for (i, v) in self._metadata['writer'].items()]
         if len(output_directories) != 1:  # Because we need at least one, and it can not be greater than 1
             raise ValueError('output-directory must be defined in writer module')
-        self._output_directory = Path(output_directories[0])
+        self._output_directory = output_directories[0]
 
         file_preservation_window = max(
             [v.get('file-preservation-window') for (i, v) in self._metadata['reader'].items()])
@@ -137,10 +137,16 @@ class RsyncPostBackup(AbstractPostBackup):
             if not os.access(password_file, os.R_OK):
                 raise ParameterException('password-file [' + self._args['password-file'] + '] is not readable',
                                          'password-file', self._backup_id, self.module_name())
-            if os.stat(password_file).st_mode & 0o77 != 0o0:
+            password_file_stat = os.stat(password_file)
+            if password_file_stat.st_mode & 0o077 != 0o0:
                 raise ParameterException(
-                    'password-file [' + self._args['password-file'] + '] must not be readable from group and '
-                                                                      'from others', 'password-file', self._backup_id,
+                    'File [' + self._args['password-file'] + '] must not be readable from group and from others',
+                    'password-file', self._backup_id,
+                    self.module_name())
+            if password_file_stat.st_uid != os.getuid():
+                raise ParameterException(
+                    'File [' + self._args['password-file'] + '] is not owned by current user',
+                    'password-file', self._backup_id,
                     self.module_name())
 
     def _prepare_run_backup(self) -> dict:
@@ -209,6 +215,9 @@ class RsyncPostBackup(AbstractPostBackup):
         if len(output_directories) != 1:  # Because we need at least one, and it can not be greater than 1
             raise ValueError('output-directory must be defined in writer module')
         self._output_directory = output_directories[0]
+        # Add trailing slash to rsync the content of the folder and not the folder
+        if self._output_directory[-1] != '/':
+            self._output_directory = self._output_directory + '/'
 
     def _run_restore(self, args: dict) -> None:
         process = subprocess.run(args['cmd'], capture_output=True, shell=False, text=True)
