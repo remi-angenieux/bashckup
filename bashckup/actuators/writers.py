@@ -82,10 +82,10 @@ class FileWriter(AbstractWriter):
 
     def _pre_run_tasks(self) -> None:
         #  Create backup folder
-        if self._dry_run is False:
+        if not os.path.exists(self._output_folder) and self._dry_run is False:
             logging.info('Folder [%s] created', str(self._output_folder))
-            os.makedirs(self._output_folder, exist_ok=True, mode=0o750)
-        elif not os.path.exists(self._output_folder):
+            os.makedirs(self._output_folder, mode=0o750)
+        elif not os.path.exists(self._output_folder) and self._dry_run is True:
             logging.info('Folder [%s] would have been created.', self._output_folder)
         if self._isBackup:
             self._backup_datetime = datetime.today()
